@@ -10,6 +10,7 @@ public class Parser {
 
     public Parser(ArrayList<String> inputList) {
         this.inputList = inputList;
+        lookahead = inputList.getFirst();
     }
 
     void parse() {
@@ -24,9 +25,20 @@ public class Parser {
     void consume(String str) {
         if (pos < inputList.size() && Objects.equals(inputList.get(pos), str)) {
             pos++;
+            lookahead = inputList.get(pos);
         } else {
             throw new RuntimeException("Expected " + str + " but found " + inputList.get(pos));
         }
+    }
+
+    void syntaxError(String message) {
+        System.out.println("Syntax Error: " + message);
+        System.exit(0);
+    }
+
+    void syntaxError() {
+        System.out.println("Syntax Error");
+        System.exit(0);
     }
 
     void program() {
@@ -64,13 +76,34 @@ public class Parser {
                 case "DISTILL":
                     compound_statement();
                 default:
-                    System.out.println("Syntax Error");
-                    System.exit(0);
+
             }
+        } else {
+            System.out.println("Syntax Error: End of File Reached");
+            System.exit(0);
         }
     }
 
     void simple_statement() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE":
+                case "INERT":
+                    mut_type();
+                    break;
+                case "INPUT":
+                case "PRINT":
+                case "PRINTLN":
+                case "PRINTERR":
+                    stdio();
+                default:
+                    System.out.println("Syntax Error");
+                    System.exit(0);
+            }
+        } else {
+            System.out.println("Syntax Error: End of File Reached");
+            System.exit(0);
+        }
         vardeclare();
         stdio();
     }
@@ -103,9 +136,13 @@ public class Parser {
         if () {
             assign_oper();
         }
+    }
 
+    void assign_oper() {
 
     }
+
+
 
     // Implement the rest of the methods according to your grammar
 }
