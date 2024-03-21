@@ -97,51 +97,275 @@ public class Parser {
                 case "PRINTERR":
                     stdio();
                 default:
-                    System.out.println("Syntax Error");
-                    System.exit(0);
+                    syntaxError();
             }
         } else {
-            System.out.println("Syntax Error: End of File Reached");
-            System.exit(0);
-        }
-        vardeclare();
-        stdio();
-    }
-
-    void compound_statement() {
-        cond_stmt();
-        ferment_stmt();
-        distill_stmt();
-    }
-
-    void vardeclare() {
-        mut_type();
-        numtype();
-        ident();
-        assignment();
-        semicolon();
-    }
-
-    void mut_type() {
-        reactive();
-        inert();
-    }
-
-    void numtype() {
-        mole64();
-        mole32();
-    }
-
-    void assignment() {
-        if () {
-            assign_oper();
+            syntaxError("End of File Reached");
         }
     }
 
-    void assign_oper() {
-
+    // input/output statements
+    void stdio() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "INPUT":
+                    stdin();
+                    break;
+                case "PRINT":
+                case "PRINTLN":
+                    stdout();
+                    break;
+                case "PRINTERR":
+                    stderr();
+                    break;
+                default:
+                    syntaxError();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
     }
 
+    void stdin() {
+        if (pos < inputList.size()) {
+            consume("INPUT");
+            consume("OPENPAR");
+            content();
+            consume("CLOSEPAR");
+            consume("SEMICOLON");
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void stdout() {
+        if (pos < inputList.size()) {
+            print_type();
+            consume("OPENPAR");
+            content();
+            consume("CLOSEPAR");
+            consume("SEMICOLON");
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void stderr() {
+        if (pos < inputList.size()) {
+            consume("PRINTERR");
+            consume("OPENPAR");
+            content();
+            consume("CLOSEPAR");
+            consume("SEMICOLON");
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void print_type() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "PRINT":
+                    consume("PRINT");
+                    break;
+                case "PRINTLN":
+                    consume("PRINTLN");
+                    break;
+                default:
+                    syntaxError();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void content() {
+        if (pos < inputList.size()) {
+            switch (lookahead) { // TODO: THIS IS GONNA HAVE PROBLEMS!!
+                case "OPENPAR":
+                case "IDENT":
+                case "SUB":
+                case "NUMLIT":
+                case "INVERT":
+                case "TRUE":
+                case "FALSE":
+                    boolderiv();
+                    break;
+                case "IDENT":
+                case "SUB":
+                case "NUMLIT":
+                    numoper();
+                    break;
+                case "IDENT":
+                case "STRLIT":
+                    strexpr();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    // string expressions
+    void strexpr() {
+        if (pos < inputList.size()) {
+            strterm();
+            strterm_x();
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void strterm() {
+        if (pos < inputList.size()) {
+            consume("IDENT");
+            consume("STRLIT");
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void strterm_x() {
+        if (pos< inputList.size()) {
+            if (Objects.equals(lookahead, "ADD")) {
+                consume("ADD");
+                strterm();
+                strterm_x();
+            } else {
+                // e-production
+                return;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    // numerical expressions
+    void numoper() {
+        if (pos < inputList.size()) {
+            term();
+            term_x();
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void term_x() {
+        if (pos < inputList.size()) {
+            if (Objects.equals(lookahead, "ADD")) {
+                consume("ADD");
+                term();
+                term_x();
+            } else if (Objects.equals(lookahead, "SUB")) {
+                consume("SUB");
+                term();
+                term_x();
+            } else {
+                return;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void term() {
+            if (pos < inputList.size()) {
+                factor();
+                factor_x();
+            } else {
+                syntaxError("End of File Reached");
+            }
+    }
+
+    void factor_x() {
+        if (pos < inputList.size()) {
+            if (Objects.equals(lookahead, "MUL")) {
+                consume("MUL");
+                factor();
+                factor_x();
+            } else if (Objects.equals(lookahead, "DIV")) {
+                consume("DIV");
+                factor();
+                factor_x();
+            } else {
+                return;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void factor() {
+        if (pos < inputList.size()) {
+            exponent();
+            exponent_x();
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void exponent_x() {
+        if (pos < inputList.size()) {
+            if (Objects.equals(lookahead, "EXP")) {
+                consume("EXP");
+                exponent();
+                exponent_x();
+            } else {
+                return;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void exponent() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "SUB":
+                    consume("SUB");
+                    num_final();
+                    break;
+                case "IDENT":
+                case "NUMLIT":
+                case "OPENPAR":
+                    num_final();
+                    break;
+                default:
+                    syntaxError();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void num_final() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "NUMLIT":
+                    numexpr();
+                    break;
+                case "IDENT":
+                    consume("IDENT");
+                    break;
+                case "OPENPAR":
+                    consume("OPENPAR");
+                    numoper();
+                    consume("CLOSEPAR");
+                    break;
+                default:
+                    syntaxError();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void numexpr() {
+        if (pos < inputList.size()) {
+            consume("NUMLIT");
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
 
 
     // Implement the rest of the methods according to your grammar
