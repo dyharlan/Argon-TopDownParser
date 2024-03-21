@@ -36,6 +36,6 @@ public class Main {
             return;
         }
         Parser parser = new Parser(inputList);
-        //parser.program();
+        parser.parse();
     }
 }
