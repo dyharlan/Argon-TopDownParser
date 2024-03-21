@@ -75,8 +75,7 @@ public class Parser {
                 case "FERMENT":
                 case "DISTILL":
                     compound_statement();
-                default:
-
+                    break;
             }
         } else {
             System.out.println("Syntax Error: End of File Reached");
@@ -89,15 +88,17 @@ public class Parser {
             switch (lookahead) {
                 case "REACTIVE":
                 case "INERT":
-                    mut_type();
+                    vardeclare();
                     break;
                 case "INPUT":
                 case "PRINT":
                 case "PRINTLN":
                 case "PRINTERR":
                     stdio();
+                    break;
                 default:
                     syntaxError();
+                    break;
             }
         } else {
             syntaxError("End of File Reached");
@@ -120,6 +121,123 @@ public class Parser {
                     break;
                 default:
                     syntaxError();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void compound_statement() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "FILTER":
+                case "WHEN":
+                    cond_stmt();
+                    break;
+                case "FERMENT":
+                    ferment_stmt();
+                    break;
+                case "DISTILL":
+                    distill_stmt();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void vardeclare() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE":
+                case "INERT":
+                    mut_type();
+                    numtype();
+                    consume("IDENT");
+                    assignment();
+                    consume("SEMICOLON");
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+//        mut_type();
+//        numtype();
+//        ident();
+//        assignment();
+//        semicolon();
+    }
+
+    void mut_type() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE":
+                    consume("REACTIVE");
+                    break;
+                case "INERT":
+                    consume("INERT");
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void numtype() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "MOLE32":
+                    consume("MOLE32");
+                    break;
+                case "MOLE64":
+                    consume("MOLE64");
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void assignment() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "ASSIGN":
+                case "ADDASSIGN":
+                case "SUBASSIGN":
+                case "MULASSIGN":
+                case "DIVASSIGN":
+                case "EXPASSIGN":
+                    assign_oper();
+                    assign_after();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void assign_oper() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "ASSIGN":
+                    consume("ASSIGN");
+                    break;
+                case "ADDASSIGN":
+                    consume("ADDASSIGN");
+                    break;
+                case "SUBASSIGN":
+                    consume("SUBASSIGN");
+                    break;
+                case "MULASSIGN":
+                    consume("MULASSIGN");
+                    break;
+                case "DIVASSIGN":
+                    consume("DIVASSIGN");
+                    break;
+                case "EXPASSIGN":
+                    consume("EXPASSIGN");
+                    break;
             }
         } else {
             syntaxError("End of File Reached");
@@ -199,6 +317,24 @@ public class Parser {
                 case "IDENT":
                 case "STRLIT":
                     strexpr();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void assign_after() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "SUB":
+                case "NUMLIT":
+                case "IDENT": //conflict with IDENT
+                case "OPENPAR":
+                    numoper();
+                    break;
+                //case "IDENT": //conflict with IDENT
+                    //consume("IDENT");
+                    //break;
             }
         } else {
             syntaxError("End of File Reached");
@@ -337,6 +473,7 @@ public class Parser {
         }
     }
 
+    //NOTE num_final is equivalent to FINAL in the grammar
     void num_final() {
         if (pos < inputList.size()) {
             switch (lookahead) {
@@ -367,6 +504,373 @@ public class Parser {
         }
     }
 
+    //Logic and Relations
+    void boolderiv() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void boolderiv_x() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void logicop() { //logic operation
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void condition() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void nonbool_rel() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void nonbool_operand() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void bool_rel() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void bool_expr() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void bool_operand() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void relation() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void eq_rel() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void size_rel() {
+        if (pos < inputList.size()) {
+
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    //Control and Iterative Statements
+    void cond_stmt() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "FILTER":
+                    filter_stmt();
+                    break;
+                case "WHEN":
+                    when_stmt();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void filter_stmt() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("FILTER")) {
+                filter_expr();
+                funnel_expr();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void filter_expr() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("FILTER")) {
+                consume("FILTER");
+                consume("OPENPAR");
+                boolderiv();
+                consume("CLOSEPAR");
+                cond_body();
+            }
+            //else do nothing because epsilon (empty string)
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void cond_body() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE": //from here
+                case "INERT":
+                case "INPUT":
+                case "PRINT":
+                case "PRINTLN":
+                case "PRINTERR": //to here is from simple_stmt
+                    simple_statement();
+                    break;
+                case "OPENBR":
+                    consume("OPENBR");
+                    body_x();
+                    consume("CLOSEBR");
+                    break;
+                default:
+                    syntaxError();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void funnel_expr() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("FUNNEL")) {
+                consume("FUNNEL");
+                funnel_right();
+            }
+            //else do nothing because epsilon (empty string)
+        } else {
+            syntaxError("End of File Reached");
+        }
+        //funnel();
+        //funnel_right();
+    }
+
+    void funnel_right() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE":
+                case "INERT":
+                case "INPUT":
+                case "PRINT":
+                case "PRINTLN":
+                case "PRINTERR":
+                case "OPENBR": //cond_body
+                    cond_body();
+                    break;
+                case "FILTER":
+                    filter_stmt();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        //cond_body();
+        //filter_stmt();
+    }
+
+    void body_x() {
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE":
+                case "INERT":
+                case "INPUT":
+                case "PRINT":
+                case "PRINTLN":
+                case "PRINTERR":
+                case "FILTER":
+                case "WHEN":
+                case "FERMENT":
+                case "DISTILL":
+                    body();
+                    body_x();
+                    break;
+            }
+            //else do nothing because epsilon (empty string)
+        } else {
+            syntaxError("End of File Reached");
+        }
+//        body();
+//        body_x();
+//        emptystr();
+    }
+
+    void body() { //note: exactly the same as STATEMENT()
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "REACTIVE":
+                case "INERT":
+                case "INPUT":
+                case "PRINT":
+                case "PRINTLN":
+                case "PRINTERR":
+                    simple_statement();
+                    break;
+                case "FILTER":
+                case "WHEN":
+                case "FERMENT":
+                case "DISTILL":
+                    compound_statement();
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void when_stmt() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("WHEN")) {
+                when_before();
+                when_after();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void when_before() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("WHEN")) {
+                consume("WHEN");
+                consume("OPENPAR");
+                consume("IDENT");
+                consume("CLOSEPAR");
+                consume("OPENBR");
+                case_x();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void when_after() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("CLOSEBR")) {
+                consume("CLOSEBR");
+            } else if (lookahead.equals("FUNNEL")) {
+                when_default();
+                consume("CLOSEBR");
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void when_default() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("FUNNEL")) {
+                consume("FUNNEL");
+                case_stmt();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void case_x() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("NUMLIT")) {
+                when_case();
+                case_x();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    //NOTE: when_case() is CASE in the grammar
+    void when_case() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("NUMLIT")) {
+                numexpr();
+                case_stmt();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void case_stmt() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("RIGHTARROW")) {
+                consume("RIGHTARROW");
+                cond_body();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+    }
+
+    void ferment_stmt() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("FERMENT")) {
+                consume("FERMENT");
+                consume("OPENPAR");
+                boolderiv();
+                consume("CLOSEPAR");
+                cond_body();
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        //FERMENT OPENPAR BOOLDERIV CLOSEPAR COND_BODY
+    }
+
+    void distill_stmt() {
+        if (pos < inputList.size()) {
+            if (lookahead.equals("DISTILL")) {
+                consume("FUNNEL");
+                consume("OPENBR");
+                body_x();
+                consume("CLOSEBR");
+                consume("UNTIL");
+                consume("OPENPAR");
+                boolderiv();
+                consume("CLOSEPAR");
+                consume("SEMICOLON");
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        //DISTILL OPENBR BODY_X CLOSEBR UNTIL OPENPAR BOOLDERIV CLOSEPAR SEMICOLON
+    }
 
     // Implement the rest of the methods according to your grammar
 }
