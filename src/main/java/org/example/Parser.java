@@ -309,6 +309,7 @@ public class Parser {
                 case "FALSE":
                     boolderiv();
                     break;
+                case "OPENPAR":
                 case "IDENT":
                 case "SUB":
                 case "NUMLIT":
