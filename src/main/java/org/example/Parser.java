@@ -20,6 +20,7 @@ public class Parser {
         } else {
             System.out.println("Error");
         }
+        System.out.println("lookahead: "+lookahead);
     }
 
     void consume(String str) {
@@ -297,25 +298,37 @@ public class Parser {
         }
     }
 
+    /*
+    IDENT:
+    strexpr
+    numoper
+    boolderiv
+
+    OPENPAR
+    SUB
+    NUMLIT:
+    boolderiv
+    numoper
+     */
     void content() {
         if (pos < inputList.size()) {
             switch (lookahead) { // TODO: THIS IS GONNA HAVE PROBLEMS!!
-                case "OPENPAR":
-                case "IDENT":
-                case "SUB":
-                case "NUMLIT":
-                case "INVERT":
-                case "TRUE":
-                case "FALSE":
-                    boolderiv();
-                    break;
-                case "OPENPAR":
-                case "IDENT":
-                case "SUB":
-                case "NUMLIT":
-                    numoper();
-                    break;
-                case "IDENT":
+//                case "OPENPAR":
+//                case "IDENT":
+//                case "SUB":
+//                case "NUMLIT":
+//                case "INVERT":
+//                case "TRUE":
+//                case "FALSE":
+//                    boolderiv();
+//                    break;
+//                case "OPENPAR":
+//                case "IDENT":
+//                case "SUB":
+//                case "NUMLIT":
+//                    numoper();
+//                    break;
+                //case "IDENT":
                 case "STRLIT":
                     strexpr();
             }
@@ -331,6 +344,9 @@ public class Parser {
                 case "NUMLIT":
                 case "IDENT": //conflict with IDENT
                 case "OPENPAR":
+                    if(lookahead.equals("IDENT")){
+                        consume("IDENT");
+                    }
                     numoper();
                     break;
                 //case "IDENT": //conflict with IDENT
@@ -354,8 +370,16 @@ public class Parser {
 
     void strterm() {
         if (pos < inputList.size()) {
-            consume("IDENT");
-            consume("STRLIT");
+            switch (lookahead){
+                case "IDENT":
+                    consume("IDENT");
+                    break;
+                case "STRLIT":
+                    consume("STRLIT");
+                    break;
+            }
+
+
         } else {
             syntaxError("End of File Reached");
         }
@@ -559,26 +583,58 @@ public class Parser {
     bool_rel:
 
 
+
+     OPENPAR:
+     nonbool_rel
+     bool_rel
+     OPENPAR bool_rel CLOSEPAR
      */
     void condition() {
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "NUMLIT":
                 case "SUB":
-                case "OPENPAR": //conflict with openpar
+                //case "OPENPAR": //conflict with openpar
                 case "IDENT":
                     nonbool_rel();
+                    break;
                 case "INVERT":
-                case "OPENPAR": //conflict with openpar
+                //case "OPENPAR": //conflict with openpar
                 case "TRUE":
                 case "FALSE":
                     bool_rel();
+                    break;
                 case "OPENPAR": //conflict with openpar
                     consume("OPENPAR");
-                    bool_rel();
-                    consume("CLOSEPAR");
+                    //bool_rel();
+                    if(pos+1 < inputList.size()){
+                        switch(inputList.get(pos+1)){
+                            case "NUMLIT":
+                            case "SUB":
+                            case "IDENT":
+                                nonbool_rel();
+                                break;
+                            case "INVERT":
+                                //case "OPENPAR": //conflict with openpar
+                            case "TRUE":
+                            case "FALSE":
+                                bool_rel();
+                                break;
+                            case "CLOSEPAR":
+                                consume("OPENPAR");
+                                break;
+
+                        }
+                    }else{
+                        syntaxError("End of File Reached");
+                    }
+
                     break;
             }
+
+
+
+
         } else {
             syntaxError("End of File Reached");
         }
@@ -601,6 +657,11 @@ public class Parser {
         }
     }
 
+    /*
+    OPENPAR:
+    numoper
+    OPENPAR nonbool_operand CLOSEPAR
+    */
     void nonbool_operand() {
         if (pos < inputList.size()) {
             switch (lookahead) {
@@ -608,13 +669,19 @@ public class Parser {
                     consume("IDENT");
                     break;
                 case "NUMLIT":
-                case "SUB":
-                case "OPENPAR": //conflict with openpar
+                //case "OPENPAR": //conflict with openpar
                     numoper();
                     break;
                 case "OPENPAR": //conflict with openpar
                     consume("OPENPAR");
-                    nonbool_operand();
+                    if((pos+1) < inputList.size()){
+                        if(inputList.get(pos+1).equals("NUMLIT")){
+                            numoper();
+                        }else{
+                            nonbool_operand();
+                        }
+                    }
+
                     consume("CLOSEPAR");
                     break;
             }
@@ -636,9 +703,10 @@ public class Parser {
                     consume("CLOSEPAR");
                     break;
                 case "TRUE":
+                    consume("TRUE");
+                    break;
                 case "FALSE":
-                    bool_rel();
-                    expr_right();
+                    consume("FALSE");
                     break;
             }
         } else {
@@ -788,14 +856,23 @@ public class Parser {
         if (pos < inputList.size()) {
             if (lookahead.equals("FILTER")) {
                 consume("FILTER");
-                consume("OPENPAR");
-                boolderiv();
-                consume("CLOSEPAR");
-                cond_body();
+                if(pos < inputList.size()){
+                    switch (lookahead){
+                        case "OPENPAR":
+                            consume("OPENPAR");
+                            boolderiv();
+
+                        case "CLOSEPAR":
+                            consume("CLOSEPAR");
+                            cond_body();
+                    }
+                }else{
+                    syntaxError("End of File Reached");
+                }
             }
             //else do nothing because epsilon (empty string)
         } else {
-            syntaxError("End of File Reached");
+
         }
     }
 
