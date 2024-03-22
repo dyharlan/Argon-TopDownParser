@@ -80,6 +80,9 @@ public class Parser {
                 case "DISTILL":
                     compound_statement();
                     break;
+                case "IDENT":
+                    varassign();
+                    break;
                 default:
                     syntaxError("Not a valid statement");
                     break;
@@ -174,6 +177,19 @@ public class Parser {
 //        ident();
 //        assignment();
 //        semicolon();
+    }
+    void varassign(){
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "IDENT":
+                    consume("IDENT");
+                    assignment();
+                    consume("SEMICOLON");
+                    break;
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
     }
 
     void mut_type() {
@@ -892,6 +908,9 @@ public class Parser {
                 case "PRINTLN":
                 case "PRINTERR": //to here is from simple_stmt
                     simple_statement();
+                    break;
+                case "IDENT":
+                    varassign();
                     break;
                 case "OPENBR":
                     consume("OPENBR");
