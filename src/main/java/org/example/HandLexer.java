@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import java.util.Scanner;
 
 enum TokenTypes {
@@ -15,7 +14,7 @@ enum TokenTypes {
 
     // possibly two character tokens (8-23)
     ADD, ADDASSIGN,
-    SUB, SUBASSIGN, ARROW,
+    SUB, SUBASSIGN, RIGHTARROW,
     MUL, MULASSIGN,
     DIV, DIVASSIGN,
     EXP, EXPASSIGN,
@@ -374,7 +373,7 @@ public class HandLexer {
                             currState = States.START;
                             break;
                         case '>':
-                            tokenList.addToken(TokenTypes.ARROW, "-" + String.valueOf(c), line);
+                            tokenList.addToken(TokenTypes.RIGHTARROW, "-" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
