@@ -5,6 +5,7 @@ import java.util.Objects;
 
 public class Parser {
     ArrayList<String> inputList;
+    ParseTree parseTree;
     int pos = 0;
     String lookahead;
 
@@ -13,23 +14,29 @@ public class Parser {
         lookahead = inputList.getFirst();
     }
 
-    void parse() {
-        program();
+    public ParseTree parse() {
+        Node root = program();
         if (Objects.equals(lookahead, "EOF")) {
             System.out.println("Accepted");
         } else {
             System.out.println("Error");
         }
         System.out.println("lookahead: "+lookahead);
+        return new ParseTree(root);
     }
 
-    void consume(String str) {
+    void consume(String str, Node parent) {
         if (pos < inputList.size() && Objects.equals(inputList.get(pos), str)) {
             pos++;
             lookahead = inputList.get(pos);
+            parent.addChild(new Node(str));
         } else {
             throw new RuntimeException("Expected " + str + " but found " + inputList.get(pos));
         }
+    }
+
+    void addToTree(String str) {
+
     }
 
     void syntaxError(String message) {
@@ -45,24 +52,31 @@ public class Parser {
         throw new RuntimeException("Syntax Error: ");
     }
 
-    void program() {
-        statements();
+    Node program() {
+        Node node = new Node("program");
+        node.addChild(statements());
+        return node;
     }
 
-    void statements() {
-        statement();
-        statements_x();
+    Node statements() {
+        Node node = new Node("statements");
+        node.addChild(statement());
+        node.addChild(statements_x());
+        return node;
     }
 
-    void statements_x() {
+    Node statements_x() {
+        Node node = new Node("statements_x");
         if (pos < inputList.size() && !Objects.equals(inputList.get(pos), "EOF")) {
-            statement();
-            statements_x();
+            node.addChild(statement());
+            node.addChild(statements_x());
         }
         // else ε (do nothing)
+        return node;
     }
 
-    void statement() {
+    Node statement() {
+        Node node = new Node("statement");
         // Implement according to your grammar
         if (pos < inputList.size()) {
             switch (lookahead) {
@@ -72,16 +86,16 @@ public class Parser {
                 case "PRINT":
                 case "PRINTLN":
                 case "PRINTERR":
-                    simple_statement();
+                    node.addChild(simple_statement());
                     break;
                 case "FILTER":
                 case "WHEN":
                 case "FERMENT":
                 case "DISTILL":
-                    compound_statement();
+                    node.addChild(compound_statement());
                     break;
                 case "IDENT":
-                    varassign();
+                    node.addChild(varassign());
                     break;
                 default:
                     syntaxError("Not a valid statement");
@@ -91,20 +105,22 @@ public class Parser {
             System.out.println("Syntax Error: End of File Reached");
             System.exit(0);
         }
+        return node;
     }
 
-    void simple_statement() {
+    Node simple_statement() {
+        Node node = new Node("simple_statement");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE":
                 case "INERT":
-                    vardeclare();
+                    node.addChild(vardeclare());
                     break;
                 case "INPUT":
                 case "PRINT":
                 case "PRINTLN":
                 case "PRINTERR":
-                    stdio();
+                    node.addChild(stdio());
                     break;
                 default:
                     syntaxError();
@@ -113,21 +129,23 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     // input/output statements
-    void stdio() {
+    Node stdio() {
+        Node node = new Node("stdio");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "INPUT":
-                    stdin();
+                    node.addChild(stdin());
                     break;
                 case "PRINT":
                 case "PRINTLN":
-                    stdout();
+                    node.addChild(stdout());
                     break;
                 case "PRINTERR":
-                    stderr();
+                    node.addChild(stderr());
                     break;
                 default:
                     syntaxError();
@@ -136,37 +154,41 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void compound_statement() {
+    Node compound_statement() {
+        Node node = new Node("compound_statement");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "FILTER":
                 case "WHEN":
-                    cond_stmt();
+                    node.addChild(cond_stmt());
                     break;
                 case "FERMENT":
-                    ferment_stmt();
+                    node.addChild(ferment_stmt());
                     break;
                 case "DISTILL":
-                    distill_stmt();
+                    node.addChild(distill_stmt());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void vardeclare() {
+    Node vardeclare() {
+        Node node = new Node("vardeclare");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE":
                 case "INERT":
-                    mut_type();
-                    numtype();
-                    consume("IDENT");
-                    assignment();
-                    consume("SEMICOLON");
+                    node.addChild(mut_type());
+                    node.addChild(numtype());
+                    consume("IDENT", node);
+                    node.addChild(assignment());
+                    consume("SEMICOLON", node);
                     break;
             }
         } else {
@@ -177,52 +199,60 @@ public class Parser {
 //        ident();
 //        assignment();
 //        semicolon();
+        return node;
     }
-    void varassign(){
+    Node varassign(){
+        Node node = new Node("varassign");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "IDENT":
-                    consume("IDENT");
-                    assignment();
-                    consume("SEMICOLON");
+                    consume("IDENT", node);
+                    node.addChild(assignment());
+                    consume("SEMICOLON", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void mut_type() {
+    Node mut_type() {
+        Node node = new Node("mut_type");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE":
-                    consume("REACTIVE");
+                    consume("REACTIVE", node);
                     break;
                 case "INERT":
-                    consume("INERT");
+                    consume("INERT", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void numtype() {
+    Node numtype() {
+        Node node = new Node("numtype");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "MOLE32":
-                    consume("MOLE32");
+                    consume("MOLE32", node);
                     break;
                 case "MOLE64":
-                    consume("MOLE64");
+                    consume("MOLE64", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void assignment() {
+    Node assignment() {
+        Node node = new Node("assignment");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "ASSIGN":
@@ -231,86 +261,96 @@ public class Parser {
                 case "MULASSIGN":
                 case "DIVASSIGN":
                 case "EXPASSIGN":
-                    assign_oper();
-                    assign_after();
+                    node.addChild(assign_oper());
+                    node.addChild(assign_after());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void assign_oper() {
+    Node assign_oper() {
+        Node node = new Node("assign_oper");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "ASSIGN":
-                    consume("ASSIGN");
+                    consume("ASSIGN", node);
                     break;
                 case "ADDASSIGN":
-                    consume("ADDASSIGN");
+                    consume("ADDASSIGN", node);
                     break;
                 case "SUBASSIGN":
-                    consume("SUBASSIGN");
+                    consume("SUBASSIGN", node);
                     break;
                 case "MULASSIGN":
-                    consume("MULASSIGN");
+                    consume("MULASSIGN", node);
                     break;
                 case "DIVASSIGN":
-                    consume("DIVASSIGN");
+                    consume("DIVASSIGN", node);
                     break;
                 case "EXPASSIGN":
-                    consume("EXPASSIGN");
+                    consume("EXPASSIGN", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void stdin() {
+    Node stdin() {
+        Node node = new Node("stdin");
         if (pos < inputList.size()) {
-            consume("INPUT");
-            consume("OPENPAR");
-            content();
-            consume("CLOSEPAR");
-            consume("SEMICOLON");
+            consume("INPUT", node);
+            consume("OPENPAR", node);
+            node.addChild(content());
+            consume("CLOSEPAR", node);
+            consume("SEMICOLON", node);
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void stdout() {
+    Node stdout() {
+        Node node = new Node("stdout");
         if (pos < inputList.size()) {
-            print_type();
-            consume("OPENPAR");
-            content();
-            consume("CLOSEPAR");
-            consume("SEMICOLON");
+            node.addChild(print_type());
+            consume("OPENPAR", node);
+            node.addChild(content());
+            consume("CLOSEPAR", node);
+            consume("SEMICOLON", node);
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void stderr() {
+    Node stderr() {
+        Node node = new Node("stderr");
         if (pos < inputList.size()) {
-            consume("PRINTERR");
-            consume("OPENPAR");
-            content();
-            consume("CLOSEPAR");
-            consume("SEMICOLON");
+            consume("PRINTERR", node);
+            consume("OPENPAR", node);
+            node.addChild(content());
+            consume("CLOSEPAR", node);
+            consume("SEMICOLON", node);
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void print_type() {
+    Node print_type() {
+        Node node = new Node("print_type");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "PRINT":
-                    consume("PRINT");
+                    consume("PRINT", node);
                     break;
                 case "PRINTLN":
-                    consume("PRINTLN");
+                    consume("PRINTLN", node);
                     break;
                 default:
                     syntaxError();
@@ -318,6 +358,7 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     /*
@@ -332,7 +373,8 @@ public class Parser {
     boolderiv
     numoper
      */
-    void content() {
+    Node content() {
+        Node node = new Node("content");
         if (pos < inputList.size()) {
             switch (lookahead) { // TODO: THIS IS GONNA HAVE PROBLEMS!!
 //                case "OPENPAR":
@@ -352,14 +394,16 @@ public class Parser {
 //                    break;
                 //case "IDENT":
                 case "STRLIT":
-                    strexpr();
+                    node.addChild(strexpr());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void assign_after() {
+    Node assign_after() {
+        Node node = new Node("assign_after");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "SUB":
@@ -367,9 +411,9 @@ public class Parser {
                 case "IDENT": //conflict with IDENT
                 case "OPENPAR":
                     if(lookahead.equals("IDENT")){
-                        consume("IDENT");
+                        consume("IDENT", node);
                     }
-                    numoper();
+                    node.addChild(numoper());
                     break;
                 //case "IDENT": //conflict with IDENT
                     //consume("IDENT");
@@ -378,139 +422,148 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     // string expressions
-    void strexpr() {
+    Node strexpr() {
+        Node node = new Node("strexpr");
         if (pos < inputList.size()) {
-            strterm();
-            strterm_x();
+            node.addChild(strterm());
+            node.addChild(strterm_x());
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void strterm() {
+    Node strterm() {
+        Node node = new Node("strterm");
         if (pos < inputList.size()) {
             switch (lookahead){
                 case "IDENT":
-                    consume("IDENT");
+                    consume("IDENT", node);
                     break;
                 case "STRLIT":
-                    consume("STRLIT");
+                    consume("STRLIT", node);
                     break;
             }
-
-
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void strterm_x() {
+    Node strterm_x() {
+        Node node = new Node("strterm_x");
         if (pos< inputList.size()) {
             if (Objects.equals(lookahead, "ADD")) {
-                consume("ADD");
-                strterm();
-                strterm_x();
-            } else {
-                // e-production
-                return;
+                consume("ADD", node);
+                node.addChild(strterm());
+                node.addChild(strterm_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     // numerical expressions
-    void numoper() {
+    Node numoper() {
+        Node node = new Node("numoper");
         if (pos < inputList.size()) {
-            term();
-            term_x();
+            node.addChild(term());
+            node.addChild(term_x());
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void term_x() {
+    Node term_x() {
+        Node node = new Node("term_x");
         if (pos < inputList.size()) {
             if (Objects.equals(lookahead, "ADD")) {
-                consume("ADD");
-                term();
-                term_x();
+                consume("ADD", node);
+                node.addChild(term());
+                node.addChild(term_x());
             } else if (Objects.equals(lookahead, "SUB")) {
-                consume("SUB");
-                term();
-                term_x();
-            } else {
-                return;
+                consume("SUB", node);
+                node.addChild(term());
+                node.addChild(term_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void term() {
-            if (pos < inputList.size()) {
-                factor();
-                factor_x();
-            } else {
-                syntaxError("End of File Reached");
-            }
+    Node term() {
+        Node node = new Node("term");
+        if (pos < inputList.size()) {
+            node.addChild(factor());
+            node.addChild(factor_x());
+        } else {
+            syntaxError("End of File Reached");
+        }
+        return node;
     }
 
-    void factor_x() {
+    Node factor_x() {
+        Node node = new Node("factor_x");
         if (pos < inputList.size()) {
             if (Objects.equals(lookahead, "MUL")) {
-                consume("MUL");
-                factor();
-                factor_x();
+                consume("MUL", node);
+                node.addChild(factor());
+                node.addChild(factor_x());
             } else if (Objects.equals(lookahead, "DIV")) {
-                consume("DIV");
-                factor();
-                factor_x();
-            } else {
-                return;
+                consume("DIV", node);
+                node.addChild(factor());
+                node.addChild(factor_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void factor() {
+    Node factor() {
+        Node node = new Node("factor");
         if (pos < inputList.size()) {
-            exponent();
-            exponent_x();
+            node.addChild(exponent());
+            node.addChild(exponent_x());
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void exponent_x() {
+    Node exponent_x() {
+        Node node = new Node("exponent_x");
         if (pos < inputList.size()) {
             if (Objects.equals(lookahead, "EXP")) {
-                consume("EXP");
-                exponent();
-                exponent_x();
-            } else {
-                return;
+                consume("EXP", node);
+                node.addChild(exponent());
+                node.addChild(exponent_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void exponent() {
+    Node exponent() {
+        Node node = new Node("exponent");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "SUB":
-                    consume("SUB");
-                    num_final();
+                    consume("SUB", node);
+                    node.addChild(num_final());
                     break;
                 case "IDENT":
                 case "NUMLIT":
                 case "OPENPAR":
-                    num_final();
+                    node.addChild(num_final());
                     break;
                 default:
                     syntaxError();
@@ -518,22 +571,24 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     //NOTE num_final is equivalent to FINAL in the grammar
-    void num_final() {
+    Node num_final() {
+        Node node = new Node("num_final");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "NUMLIT":
-                    numexpr();
+                    node.addChild(numexpr());
                     break;
                 case "IDENT":
-                    consume("IDENT");
+                    consume("IDENT", node);
                     break;
                 case "OPENPAR":
-                    consume("OPENPAR");
+                    consume("OPENPAR", node);
                     numoper();
-                    consume("CLOSEPAR");
+                    consume("CLOSEPAR", node);
                     break;
                 default:
                     syntaxError();
@@ -541,18 +596,22 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void numexpr() {
+    Node numexpr() {
+        Node node = new Node("numexpr");
         if (pos < inputList.size()) {
-            consume("NUMLIT");
+            consume("NUMLIT", node);
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     //Logic and Relations
-    void boolderiv() {
+    Node boolderiv() {
+        Node node = new Node("boolderiv");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "NUMLIT":
@@ -562,40 +621,45 @@ public class Parser {
                 case "INVERT":
                 case "TRUE":
                 case "FALSE":
-                    condition();
-                    boolderiv_x();
+                    node.addChild(condition());
+                    node.addChild(boolderiv_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void boolderiv_x() {
+    Node boolderiv_x() {
+        Node node = new Node("boolderiv_x");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "AND":
                 case "OR":
-                    logicop();
-                    condition();
-                    boolderiv_x();
+                    node.addChild(logicop());
+                    node.addChild(condition());
+                    node.addChild(boolderiv_x());
                     break;
                 //else, do nothing
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void logicop() { //logic operation
+    Node logicop() { //logic operation
+        Node node = new Node("logicop");
         if (pos < inputList.size()) {
             if (lookahead.equals("AND")) {
-                consume("AND");
+                consume("AND", node);
             } else if (lookahead.equals("OR")) {
-                consume("OR");
+                consume("OR", node);
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     /*
@@ -611,72 +675,71 @@ public class Parser {
      bool_rel
      OPENPAR bool_rel CLOSEPAR
      */
-    void condition() {
+    Node condition() {
+        Node node = new Node("condition");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "NUMLIT":
                 case "SUB":
                 //case "OPENPAR": //conflict with openpar
                 case "IDENT":
-                    nonbool_rel();
+                    node.addChild(nonbool_rel());
                     break;
                 case "INVERT":
                 //case "OPENPAR": //conflict with openpar
                 case "TRUE":
                 case "FALSE":
-                    bool_rel();
+                    node.addChild(bool_rel());
                     break;
                 case "OPENPAR": //conflict with openpar
-                    consume("OPENPAR");
+                    consume("OPENPAR", node);
                     //bool_rel();
                     if(pos+1 < inputList.size()){
                         switch(inputList.get(pos+1)){
                             case "NUMLIT":
                             case "SUB":
                             case "IDENT":
-                                nonbool_rel();
+                                node.addChild(nonbool_rel());
                                 break;
                             case "INVERT":
                                 //case "OPENPAR": //conflict with openpar
                             case "TRUE":
                             case "FALSE":
-                                bool_rel();
+                                node.addChild(bool_rel());
                                 break;
                             case "CLOSEPAR":
-                                consume("OPENPAR");
+                                consume("OPENPAR", node);
                                 break;
 
                         }
                     }else{
                         syntaxError("End of File Reached");
                     }
-
                     break;
             }
-
-
-
-
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void nonbool_rel() {
+    Node nonbool_rel() {
+        Node node = new Node("nonbool_rel");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "IDENT":
                 case "NUMLIT":
                 case "SUB":
                 case "OPENPAR":
-                    nonbool_operand();
-                    relation();
-                    nonbool_operand();
+                    node.addChild(nonbool_operand());
+                    node.addChild(relation());
+                    node.addChild(nonbool_operand());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     /*
@@ -684,209 +747,230 @@ public class Parser {
     numoper
     OPENPAR nonbool_operand CLOSEPAR
     */
-    void nonbool_operand() {
+    Node nonbool_operand() {
+        Node node = new Node("nonbool_operand");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "IDENT":
-                    consume("IDENT");
+                    consume("IDENT", node);
                     break;
                 case "NUMLIT":
                 //case "OPENPAR": //conflict with openpar
-                    numoper();
+                    node.addChild(numoper());
                     break;
                 case "OPENPAR": //conflict with openpar
-                    consume("OPENPAR");
+                    consume("OPENPAR", node);
                     if((pos+1) < inputList.size()){
                         if(inputList.get(pos+1).equals("NUMLIT")){
-                            numoper();
+                            node.addChild(numoper());
                         }else{
-                            nonbool_operand();
+                            node.addChild(nonbool_operand());
                         }
                     }
-
-                    consume("CLOSEPAR");
+                    consume("CLOSEPAR", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void bool_rel() {
+    Node bool_rel() {
+        Node node = new Node("bool_rel");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "INVERT":
-                    consume("INVERT");
-                    bool_rel();
+                    consume("INVERT", node);
+                    node.addChild(bool_rel());
                     break;
                 case "OPENPAR":
-                    consume("OPENPAR");
-                    condition();
-                    consume("CLOSEPAR");
+                    consume("OPENPAR", node);
+                    node.addChild(condition());
+                    consume("CLOSEPAR", node);
                     break;
                 case "TRUE":
-                    consume("TRUE");
+                    consume("TRUE", node);
                     break;
                 case "FALSE":
-                    consume("FALSE");
+                    consume("FALSE", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void bool_expr() {
+    Node bool_expr() {
+        Node node = new Node("bool_expr");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "INVERT":
                 case "OPENPAR":
                 case "TRUE":
                 case "FALSE":
-                    bool_rel();
-                    expr_right();
+                    node.addChild(bool_rel());
+                    node.addChild(expr_right());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void expr_right() {
+    Node expr_right() {
+        Node node = new Node("expr_right");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "IS":
-                    eq_rel();
-                    bool_rel();
+                    node.addChild(eq_rel());
+                    node.addChild(bool_rel());
                     break;
                 case "AND":
                 case "OR":
-                    logicop();
-                    bool_rel();
+                    node.addChild(logicop());
+                    node.addChild(bool_rel());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void bool_operand() {
+    Node bool_operand() {
+        Node node = new Node("bool_operand");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "IDENT":
-                    consume("IDENT");
+                    consume("IDENT", node);
                     break;
                 case "OPENPAR":
-                    consume("OPENPAR");
-                    bool_operand();
-                    consume("CLOSEPAR");
+                    consume("OPENPAR", node);
+                    node.addChild(bool_operand());
+                    consume("CLOSEPAR", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void relation() {
+    Node relation() {
+        Node node = new Node("relation");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "IS":
-                    eq_rel();
+                    node.addChild(eq_rel());
                     break;
                 case "GT":
                 case "LT":
                 case "GTE":
                 case "LTE":
-                    size_rel();
+                    node.addChild(size_rel());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void eq_rel() {
+    Node eq_rel() {
+        Node node = new Node("eq_rel");
         if (pos < inputList.size()) {
             if (lookahead.equals("IS")) {
-                consume("IS");
-                eq_right();
+                consume("IS", node);
+                node.addChild(eq_right());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void eq_right() {
+    Node eq_right() {
+        Node node = new Node("eq_right");
         if (pos < inputList.size()) {
             if (lookahead.equals("NOT")) {
-                consume("NOT");
+                consume("NOT", node);
             }
             //else do nothing because epsilon (empty string)
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void size_rel() {
+    Node size_rel() {
+        Node node = new Node("size_rel");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "GT":
-                    consume("GT");
+                    consume("GT", node);
                     break;
                 case "LT":
-                    consume("LT");
+                    consume("LT", node);
                     break;
                 case "GTE":
-                    consume("GTE");
+                    consume("GTE", node);
                     break;
                 case "LTE":
-                    consume("LTE");
+                    consume("LTE", node);
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     //Control and Iterative Statements
-    void cond_stmt() {
+    Node cond_stmt() {
+        Node node = new Node("cond_stmt");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "FILTER":
-                    filter_stmt();
+                    node.addChild(filter_stmt());
                     break;
                 case "WHEN":
-                    when_stmt();
+                    node.addChild(when_stmt());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void filter_stmt() {
+    Node filter_stmt() {
+        Node node = new Node("filter_stmt");
         if (pos < inputList.size()) {
             if (lookahead.equals("FILTER")) {
-                filter_expr();
-                funnel_expr();
+                node.addChild(filter_expr());
+                node.addChild(funnel_expr());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void filter_expr() {
+    Node filter_expr() {
+        Node node = new Node("filter_expr");
         if (pos < inputList.size()) {
             if (lookahead.equals("FILTER")) {
-                consume("FILTER");
+                consume("FILTER", node);
                 if(pos < inputList.size()){
                     switch (lookahead){
                         case "OPENPAR":
-                            consume("OPENPAR");
-                            boolderiv();
-
+                            consume("OPENPAR", node);
+                            node.addChild(boolderiv());
                         case "CLOSEPAR":
-                            consume("CLOSEPAR");
-                            cond_body();
+                            consume("CLOSEPAR", node);
+                            node.addChild(cond_body());
                     }
                 }else{
                     syntaxError("End of File Reached");
@@ -894,11 +978,13 @@ public class Parser {
             }
             //else do nothing because epsilon (empty string)
         } else {
-
+            syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void cond_body() {
+    Node cond_body() {
+        Node node = new Node("cond_body");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE": //from here
@@ -907,15 +993,15 @@ public class Parser {
                 case "PRINT":
                 case "PRINTLN":
                 case "PRINTERR": //to here is from simple_stmt
-                    simple_statement();
+                    node.addChild(simple_statement());
                     break;
                 case "IDENT":
-                    varassign();
+                    node.addChild(varassign());
                     break;
                 case "OPENBR":
-                    consume("OPENBR");
-                    body_x();
-                    consume("CLOSEBR");
+                    consume("OPENBR", node);
+                    node.addChild(body_x());
+                    consume("CLOSEBR", node);
                     break;
                 default:
                     syntaxError();
@@ -924,13 +1010,15 @@ public class Parser {
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void funnel_expr() {
+    Node funnel_expr() {
+        Node node = new Node("funnel_expr");
         if (pos < inputList.size()) {
             if (lookahead.equals("FUNNEL")) {
-                consume("FUNNEL");
-                funnel_right();
+                consume("FUNNEL", node);
+                node.addChild(funnel_right());
             }
             //else do nothing because epsilon (empty string)
         } else {
@@ -938,9 +1026,11 @@ public class Parser {
         }
         //funnel();
         //funnel_right();
+        return node;
     }
 
-    void funnel_right() {
+    Node funnel_right() {
+        Node node = new Node("funnel_right");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE":
@@ -950,10 +1040,10 @@ public class Parser {
                 case "PRINTLN":
                 case "PRINTERR":
                 case "OPENBR": //cond_body
-                    cond_body();
+                    node.addChild(cond_body());
                     break;
                 case "FILTER":
-                    filter_stmt();
+                    node.addChild(filter_stmt());
                     break;
             }
         } else {
@@ -961,9 +1051,11 @@ public class Parser {
         }
         //cond_body();
         //filter_stmt();
+        return node;
     }
 
-    void body_x() {
+    Node body_x() {
+        Node node = new Node("body_x");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE":
@@ -976,8 +1068,8 @@ public class Parser {
                 case "WHEN":
                 case "FERMENT":
                 case "DISTILL":
-                    body();
-                    body_x();
+                    node.addChild(body());
+                    node.addChild(body_x());
                     break;
             }
             //else do nothing because epsilon (empty string)
@@ -987,9 +1079,11 @@ public class Parser {
 //        body();
 //        body_x();
 //        emptystr();
+        return node;
     }
 
-    void body() { //note: exactly the same as STATEMENT()
+    Node body() { //note: exactly the same as STATEMENT()
+        Node node = new Node("body");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "REACTIVE":
@@ -998,137 +1092,154 @@ public class Parser {
                 case "PRINT":
                 case "PRINTLN":
                 case "PRINTERR":
-                    simple_statement();
+                    node.addChild(simple_statement());
                     break;
                 case "FILTER":
                 case "WHEN":
                 case "FERMENT":
                 case "DISTILL":
-                    compound_statement();
+                    node.addChild(compound_statement());
                     break;
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void when_stmt() {
+    Node when_stmt() {
+        Node node = new Node("when_stmt");
         if (pos < inputList.size()) {
             if (lookahead.equals("WHEN")) {
-                when_before();
-                when_after();
+                node.addChild(when_before());
+                node.addChild(when_after());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void when_before() {
+    Node when_before() {
+        Node node = new Node("when_before");
         if (pos < inputList.size()) {
             if (lookahead.equals("WHEN")) {
-                consume("WHEN");
-                consume("OPENPAR");
-                consume("IDENT");
-                consume("CLOSEPAR");
-                consume("OPENBR");
-                case_x();
+                consume("WHEN", node);
+                consume("OPENPAR", node);
+                consume("IDENT", node);
+                consume("CLOSEPAR", node);
+                consume("OPENBR", node);
+                node.addChild(case_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void when_after() {
+    Node when_after() {
+        Node node = new Node("when_after");
         if (pos < inputList.size()) {
             if (lookahead.equals("CLOSEBR")) {
-                consume("CLOSEBR");
+                consume("CLOSEBR", node);
             } else if (lookahead.equals("FUNNEL")) {
-                when_default();
-                consume("CLOSEBR");
+                node.addChild(when_default());
+                consume("CLOSEBR", node);
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void when_default() {
+    Node when_default() {
+        Node node = new Node("when_default");
         if (pos < inputList.size()) {
             if (lookahead.equals("FUNNEL")) {
-                consume("FUNNEL");
-                case_stmt();
+                consume("FUNNEL", node);
+                node.addChild(case_stmt());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void case_x() {
+    Node case_x() {
+        Node node = new Node("case_x");
         if (pos < inputList.size()) {
             if (lookahead.equals("NUMLIT")) {
-                when_case();
-                case_x();
+                node.addChild(when_case());
+                node.addChild(case_x());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
     //NOTE: when_case() is CASE in the grammar
-    void when_case() {
+    Node when_case() {
+        Node node = new Node("when_case");
         if (pos < inputList.size()) {
             if (lookahead.equals("NUMLIT")) {
-                numexpr();
-                case_stmt();
+                node.addChild(numexpr());
+                node.addChild(case_stmt());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void case_stmt() {
+    Node case_stmt() {
+        Node node = new Node("case_stmt");
         if (pos < inputList.size()) {
             if (lookahead.equals("RIGHTARROW")) {
-                consume("RIGHTARROW");
-                cond_body();
+                consume("RIGHTARROW", node);
+                node.addChild(cond_body());
             }
         } else {
             syntaxError("End of File Reached");
         }
+        return node;
     }
 
-    void ferment_stmt() {
+    Node ferment_stmt() {
+        Node node = new Node("ferment_stmt");
         if (pos < inputList.size()) {
             if (lookahead.equals("FERMENT")) {
-                consume("FERMENT");
-                consume("OPENPAR");
-                boolderiv();
-                consume("CLOSEPAR");
-                cond_body();
+                consume("FERMENT", node);
+                consume("OPENPAR", node);
+                node.addChild(boolderiv());
+                consume("CLOSEPAR", node);
+                node.addChild(cond_body());
             }
         } else {
             syntaxError("End of File Reached");
         }
         //FERMENT OPENPAR BOOLDERIV CLOSEPAR COND_BODY
+        return node;
     }
 
-    void distill_stmt() {
+    Node distill_stmt() {
+        Node node = new Node("distill_stmt");
         if (pos < inputList.size()) {
             if (lookahead.equals("DISTILL")) {
-                consume("FUNNEL");
-                consume("OPENBR");
-                body_x();
-                consume("CLOSEBR");
-                consume("UNTIL");
-                consume("OPENPAR");
-                boolderiv();
-                consume("CLOSEPAR");
-                consume("SEMICOLON");
+                consume("FUNNEL", node);
+                consume("OPENBR", node);
+                node.addChild(body_x());
+                consume("CLOSEBR", node);
+                consume("UNTIL", node);
+                consume("OPENPAR", node);
+                node.addChild(boolderiv());
+                consume("CLOSEPAR", node);
+                consume("SEMICOLON", node);
             }
         } else {
             syntaxError("End of File Reached");
         }
         //DISTILL OPENBR BODY_X CLOSEBR UNTIL OPENPAR BOOLDERIV CLOSEPAR SEMICOLON
+        return node;
     }
-
-    // Implement the rest of the methods according to your grammar
 }

@@ -58,6 +58,7 @@ public class Main {
             return;
         }
         Parser parser = new Parser(inputList);
-        parser.parse();
+        ParseTree parseTree = parser.parse();
+        parseTree.print();
     }
 }
