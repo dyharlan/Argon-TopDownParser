@@ -33,13 +33,16 @@ public class Parser {
     }
 
     void syntaxError(String message) {
-        System.out.println("Syntax Error: " + message);
-        System.exit(0);
+        //System.out.println("Syntax Error: " + message);
+
+        //System.exit(0);
+        throw new RuntimeException("Syntax Error: " + message);
     }
 
     void syntaxError() {
-        System.out.println("Syntax Error");
-        System.exit(0);
+        //System.out.println("Syntax Error");
+        //System.exit(0);
+        throw new RuntimeException("Syntax Error: ");
     }
 
     void program() {
@@ -52,7 +55,7 @@ public class Parser {
     }
 
     void statements_x() {
-        if (pos < inputList.size() && Objects.equals(inputList.get(pos), "SEMICOLON")) {
+        if (pos < inputList.size() && !Objects.equals(inputList.get(pos), "EOF")) {
             statement();
             statements_x();
         }
@@ -76,6 +79,9 @@ public class Parser {
                 case "FERMENT":
                 case "DISTILL":
                     compound_statement();
+                    break;
+                default:
+                    syntaxError("Not a valid statement");
                     break;
             }
         } else {
