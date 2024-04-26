@@ -1,3 +1,5 @@
-filter(x < 32) {
-    print("x is less than 32!");
-}
+reactive mole32 x = 5;
+print("test");
+//filter(x < 32) {
+//    print("x is less than 32!");
+//}

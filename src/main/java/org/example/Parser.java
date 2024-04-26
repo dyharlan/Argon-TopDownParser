@@ -11,7 +11,7 @@ public class Parser {
 
     public Parser(ArrayList<String> inputList) {
         this.inputList = inputList;
-        lookahead = inputList.getFirst();
+        lookahead = inputList.get(0);
     }
 
     public ParseTree parse() {
