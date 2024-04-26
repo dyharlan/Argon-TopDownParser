@@ -1,6 +1,6 @@
 package org.example;
 
-public class Interpreter {
+public class SyntaxTree {
     ParseTree tree;
     
 }
