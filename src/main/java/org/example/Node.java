@@ -9,10 +9,13 @@ public class Node {
 
     public Node(String value) {
         this.value = value;
-        this.children = new ArrayList<>();
+        //this.children = new ArrayList<>();
     }
 
     public void addChild(Node child) {
+        if(this.children == null){
+            this.children = new ArrayList<>();
+        }
         this.children.add(child);
     }
 
@@ -37,8 +40,11 @@ public class Node {
         System.out.println(value);
 
         // Print the children of the node
-        for (Node child : children) {
-            child.print(depth + 1);
-        }
+       if(children != null){
+           for (Node child : children) {
+               child.print(depth + 1);
+           }
+       }
+
     }
 }
