@@ -94,11 +94,16 @@ public class Parser {
                 case "DISTILL":
                     node.addChild(compound_statement());
                     break;
-                case "IDENT":
-                    node.addChild(varassign());
-                    break;
+//                case "IDENT":
+//                    node.addChild(varassign());
+//                    break;
                 default:
-                    syntaxError("Not a valid statement");
+                    if(lookahead.startsWith("IDENT")){
+                        node.addChild(varassign());
+                    } else {
+                        syntaxError("Not a valid statement");
+                    }
+
                     break;
             }
         } else {
@@ -186,7 +191,10 @@ public class Parser {
                 case "INERT":
                     node.addChild(mut_type());
                     node.addChild(numtype());
-                    consume("IDENT", node);
+                    if(lookahead.startsWith("IDENT")){
+                        consume(lookahead, node);
+                    }
+                    //consume("IDENT", node);
                     node.addChild(assignment());
                     consume("SEMICOLON", node);
                     break;
@@ -204,12 +212,17 @@ public class Parser {
     Node varassign(){
         Node node = new Node("varassign");
         if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "IDENT":
-                    consume("IDENT", node);
-                    node.addChild(assignment());
-                    consume("SEMICOLON", node);
-                    break;
+//            switch (lookahead) {
+//                case "IDENT":
+//                    consume("IDENT", node);
+//                    node.addChild(assignment());
+//                    consume("SEMICOLON", node);
+//                    break;
+//            }
+            if(lookahead.startsWith("IDENT")){
+                consume(lookahead, node);
+                node.addChild(assignment());
+                consume("SEMICOLON", node);
             }
         } else {
             syntaxError("End of File Reached");
@@ -376,25 +389,28 @@ public class Parser {
     Node content() {
         Node node = new Node("content");
         if (pos < inputList.size()) {
-            switch (lookahead) { // TODO: THIS IS GONNA HAVE PROBLEMS!!
-//                case "OPENPAR":
-//                case "IDENT":
-//                case "SUB":
-//                case "NUMLIT":
-//                case "INVERT":
-//                case "TRUE":
-//                case "FALSE":
-//                    boolderiv();
-//                    break;
-//                case "OPENPAR":
-//                case "IDENT":
-//                case "SUB":
-//                case "NUMLIT":
-//                    numoper();
-//                    break;
-                //case "IDENT":
-                case "STRLIT":
-                    node.addChild(strexpr());
+//            switch (lookahead) { // TODO: THIS IS GONNA HAVE PROBLEMS!!
+////                case "OPENPAR":
+////                case "IDENT":
+////                case "SUB":
+////                case "NUMLIT":
+////                case "INVERT":
+////                case "TRUE":
+////                case "FALSE":
+////                    boolderiv();
+////                    break;
+////                case "OPENPAR":
+////                case "IDENT":
+////                case "SUB":
+////                case "NUMLIT":
+////                    numoper();
+////                    break;
+//                //case "IDENT":
+//                case "STRLIT":
+//                    node.addChild(strexpr());
+//            }
+            if(lookahead.startsWith("STRLIT")){
+                node.addChild(strexpr());
             }
         } else {
             syntaxError("End of File Reached");
@@ -407,18 +423,28 @@ public class Parser {
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "SUB":
-                case "NUMLIT":
-                case "IDENT": //conflict with IDENT
+                //case "NUMLIT":
+                //case "IDENT": //conflict with IDENT
                 case "OPENPAR":
-                    if(lookahead.equals("IDENT")){
-                        consume("IDENT", node);
-                    }
+//                    if(lookahead.startsWith("IDENT")){
+//                        //consume("IDENT", node);
+//                        consume(lookahead, node);
+//                    }
                     node.addChild(numoper());
                     break;
                 //case "IDENT": //conflict with IDENT
                     //consume("IDENT");
                     //break;
             }
+            if(lookahead.startsWith("IDENT")){
+                //consume("IDENT", node);
+                consume(lookahead, node);
+                node.addChild(numoper());
+            }
+            if(lookahead.startsWith("NUMLIT")){
+                node.addChild(numoper());
+            }
+
         } else {
             syntaxError("End of File Reached");
         }
@@ -440,13 +466,18 @@ public class Parser {
     Node strterm() {
         Node node = new Node("strterm");
         if (pos < inputList.size()) {
-            switch (lookahead){
-                case "IDENT":
-                    consume("IDENT", node);
-                    break;
-                case "STRLIT":
-                    consume("STRLIT", node);
-                    break;
+//            switch (lookahead){
+//                case "IDENT":
+//                    consume("IDENT", node);
+//                    break;
+//                case "STRLIT":
+//                    consume("STRLIT", node);
+//                    break;
+//            }
+            if(lookahead.startsWith("IDENT")){
+                consume(lookahead, node);
+            }else if(lookahead.startsWith("STRLIT")){
+                consume(lookahead, node);
             }
         } else {
             syntaxError("End of File Reached");
@@ -560,13 +591,17 @@ public class Parser {
                     consume("SUB", node);
                     node.addChild(num_final());
                     break;
-                case "IDENT":
-                case "NUMLIT":
+                //case "IDENT":
+                //case "NUMLIT":
                 case "OPENPAR":
                     node.addChild(num_final());
                     break;
                 default:
-                    syntaxError();
+                    if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
+                        node.addChild(num_final());
+                    } else {
+                        syntaxError();
+                    }
             }
         } else {
             syntaxError("End of File Reached");
@@ -578,21 +613,32 @@ public class Parser {
     Node num_final() {
         Node node = new Node("num_final");
         if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "NUMLIT":
-                    node.addChild(numexpr());
-                    break;
-                case "IDENT":
-                    consume("IDENT", node);
-                    break;
-                case "OPENPAR":
-                    consume("OPENPAR", node);
-                    numoper();
-                    consume("CLOSEPAR", node);
-                    break;
-                default:
-                    syntaxError();
+            if(lookahead.startsWith("NUMLIT")){
+                node.addChild(numexpr());
+            }else if(lookahead.startsWith("IDENT")){
+                consume(lookahead, node);
+            }else if(lookahead.equals("OPENPAR")){
+                consume("OPENPAR", node);
+                numoper();
+                consume("CLOSEPAR", node);
+            }else {
+                syntaxError();
             }
+//            switch (lookahead) {
+//                case "NUMLIT":
+//                    node.addChild(numexpr());
+//                    break;
+//                case "IDENT":
+//                    consume("IDENT", node);
+//                    break;
+//                case "OPENPAR":
+//                    consume("OPENPAR", node);
+//                    numoper();
+//                    consume("CLOSEPAR", node);
+//                    break;
+//                default:
+//                    syntaxError();
+//            }
         } else {
             syntaxError("End of File Reached");
         }
@@ -601,8 +647,9 @@ public class Parser {
 
     Node numexpr() {
         Node node = new Node("numexpr");
-        if (pos < inputList.size()) {
-            consume("NUMLIT", node);
+        if (pos < inputList.size() && lookahead.startsWith("NUMLIT")) {
+            //consume("NUMLIT", node);
+            consume(lookahead, node);
         } else {
             syntaxError("End of File Reached");
         }
@@ -614,15 +661,19 @@ public class Parser {
         Node node = new Node("boolderiv");
         if (pos < inputList.size()) {
             switch (lookahead) {
-                case "NUMLIT":
+                //case "NUMLIT":
                 case "SUB":
                 case "OPENPAR": //conflict with openpar
-                case "IDENT":
+                //case "IDENT":
                 case "INVERT":
                 case "TRUE":
                 case "FALSE":
                     node.addChild(condition());
                     node.addChild(boolderiv_x());
+            }
+            if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
+                node.addChild(condition());
+                node.addChild(boolderiv_x());
             }
         } else {
             syntaxError("End of File Reached");
@@ -679,10 +730,10 @@ public class Parser {
         Node node = new Node("condition");
         if (pos < inputList.size()) {
             switch (lookahead) {
-                case "NUMLIT":
+                //case "NUMLIT":
                 case "SUB":
                 //case "OPENPAR": //conflict with openpar
-                case "IDENT":
+                //case "IDENT":
                     node.addChild(nonbool_rel());
                     break;
                 case "INVERT":
@@ -696,9 +747,9 @@ public class Parser {
                     //bool_rel();
                     if(pos+1 < inputList.size()){
                         switch(inputList.get(pos+1)){
-                            case "NUMLIT":
+                            //case "NUMLIT":
                             case "SUB":
-                            case "IDENT":
+                            //case "IDENT":
                                 node.addChild(nonbool_rel());
                                 break;
                             case "INVERT":
@@ -717,6 +768,11 @@ public class Parser {
                     }
                     break;
             }
+            if(lookahead.startsWith("IDENT") || ((pos+1 < inputList.size()) && (inputList.get(pos+1).startsWith("IDENT")))){
+                node.addChild(nonbool_rel());
+            }else if(lookahead.startsWith("NUMLIT") || ((pos+1 < inputList.size()) && (inputList.get(pos+1).startsWith("NUMLIT")))){
+                node.addChild(nonbool_rel());
+            }
         } else {
             syntaxError("End of File Reached");
         }
@@ -727,14 +783,19 @@ public class Parser {
         Node node = new Node("nonbool_rel");
         if (pos < inputList.size()) {
             switch (lookahead) {
-                case "IDENT":
-                case "NUMLIT":
+                //case "IDENT":
+                //case "NUMLIT":
                 case "SUB":
                 case "OPENPAR":
                     node.addChild(nonbool_operand());
                     node.addChild(relation());
                     node.addChild(nonbool_operand());
                     break;
+            }
+            if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
+                node.addChild(nonbool_operand());
+                node.addChild(relation());
+                node.addChild(nonbool_operand());
             }
         } else {
             syntaxError("End of File Reached");
@@ -750,26 +811,41 @@ public class Parser {
     Node nonbool_operand() {
         Node node = new Node("nonbool_operand");
         if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "IDENT":
-                    consume("IDENT", node);
-                    break;
-                case "NUMLIT":
-                //case "OPENPAR": //conflict with openpar
-                    node.addChild(numoper());
-                    break;
-                case "OPENPAR": //conflict with openpar
-                    consume("OPENPAR", node);
-                    if((pos+1) < inputList.size()){
-                        if(inputList.get(pos+1).equals("NUMLIT")){
-                            node.addChild(numoper());
-                        }else{
-                            node.addChild(nonbool_operand());
-                        }
+            if(lookahead.startsWith("IDENT")){
+                consume(lookahead, node);
+            }else if(lookahead.startsWith("NUMLIT")){
+                node.addChild(numoper());
+            }else if(lookahead.equals("OPENPAR")){
+                consume("OPENPAR", node);
+                if((pos+1) < inputList.size()){
+                    if(inputList.get(pos+1).startsWith("NUMLIT")){
+                        node.addChild(numoper());
+                    }else{
+                        node.addChild(nonbool_operand());
                     }
-                    consume("CLOSEPAR", node);
-                    break;
+                }
+                consume("CLOSEPAR", node);
             }
+//            switch (lookahead) {
+//                case "IDENT":
+//                    consume("IDENT", node);
+//                    break;
+//                case "NUMLIT":
+//                //case "OPENPAR": //conflict with openpar
+//                    node.addChild(numoper());
+//                    break;
+//                case "OPENPAR": //conflict with openpar
+//                    consume("OPENPAR", node);
+//                    if((pos+1) < inputList.size()){
+//                        if(inputList.get(pos+1).equals("NUMLIT")){
+//                            node.addChild(numoper());
+//                        }else{
+//                            node.addChild(nonbool_operand());
+//                        }
+//                    }
+//                    consume("CLOSEPAR", node);
+//                    break;
+//            }
         } else {
             syntaxError("End of File Reached");
         }
@@ -842,16 +918,23 @@ public class Parser {
     Node bool_operand() {
         Node node = new Node("bool_operand");
         if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "IDENT":
-                    consume("IDENT", node);
-                    break;
-                case "OPENPAR":
-                    consume("OPENPAR", node);
-                    node.addChild(bool_operand());
-                    consume("CLOSEPAR", node);
-                    break;
+            if(lookahead.startsWith("IDENT")){
+                consume(lookahead, node);
+            }else if(lookahead.equals("OPENPAR")){
+                consume("OPENPAR", node);
+                node.addChild(bool_operand());
+                consume("CLOSEPAR", node);
             }
+//            switch (lookahead) {
+//                case "IDENT":
+//                    consume("IDENT", node);
+//                    break;
+//                case "OPENPAR":
+//                    consume("OPENPAR", node);
+//                    node.addChild(bool_operand());
+//                    consume("CLOSEPAR", node);
+//                    break;
+//            }
         } else {
             syntaxError("End of File Reached");
         }
@@ -995,16 +1078,20 @@ public class Parser {
                 case "PRINTERR": //to here is from simple_stmt
                     node.addChild(simple_statement());
                     break;
-                case "IDENT":
-                    node.addChild(varassign());
-                    break;
+//                case "IDENT":
+//                    node.addChild(varassign());
+//                    break;
                 case "OPENBR":
                     consume("OPENBR", node);
                     node.addChild(body_x());
                     consume("CLOSEBR", node);
                     break;
                 default:
-                    syntaxError();
+                    if(lookahead.startsWith("IDENT")){
+                        node.addChild(varassign());
+                    }else {
+                        syntaxError();
+                    }
                     break;
             }
         } else {

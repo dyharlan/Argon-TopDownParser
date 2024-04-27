@@ -16,22 +16,22 @@ public class Main {
         try (BufferedReader br = new BufferedReader(new FileReader("output.txt"))) {
             String line;
             while ((line = br.readLine()) != null) { // Read each line from the file into a String
-                if (line.startsWith("EOF")) { //check for EOF
-                   inputList.add("EOF");
-                   break;
-                }
-                if (line.startsWith("STRLIT")) { //check for STRLIT
-                    inputList.add("STRLIT");
-                    continue;
-                }
-                if (line.startsWith("IDENT")) { //check for IDENT
-                    inputList.add("IDENT");
-                    continue;
-                }
-                if(line.startsWith("NUMLIT")){
-                    inputList.add("NUMLIT");
-                    continue;
-                }
+//                if (line.startsWith("EOF")) { //check for EOF
+//                   inputList.add("EOF");
+//                   break;
+//                }
+//                if (line.startsWith("STRLIT")) { //check for STRLIT
+//                    inputList.add("STRLIT");
+//                    continue;
+//                }
+//                if (line.startsWith("IDENT")) { //check for IDENT
+//                    inputList.add("IDENT");
+//                    continue;
+//                }
+//                if(line.startsWith("NUMLIT")){
+//                    inputList.add("NUMLIT");
+//                    continue;
+//                }
 
                 inputList.add(line.trim());
 
