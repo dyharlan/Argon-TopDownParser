@@ -231,7 +231,8 @@ public class HandLexer {
                             break;
 
                         default:
-                            System.out.println("DEFAULT BEHAVIOUR! " + c);
+                            System.out.println("UNKNOWN SYMBOL \"" + c + "\" at: Line: " + line + ", Column: " + curr);
+                            System.exit(0);
                             break;
 
                         // string literal
