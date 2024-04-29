@@ -71,6 +71,8 @@ public class Parser {
         if (pos < inputList.size() && !Objects.equals(inputList.get(pos), "EOF")) {
             parseTreeNode.addChild(statement());
             parseTreeNode.addChild(statements_x());
+        }else {
+            emptyString(parseTreeNode);
         }
         // else ε (do nothing)
         return parseTreeNode;
@@ -465,6 +467,8 @@ public class Parser {
                 consume("ADD", parseTreeNode);
                 parseTreeNode.addChild(strterm());
                 parseTreeNode.addChild(strterm_x());
+            }else {
+                emptyString(parseTreeNode);
             }
         } else {
             syntaxError("End of File Reached");
@@ -495,6 +499,8 @@ public class Parser {
                 consume("SUB", parseTreeNode);
                 parseTreeNode.addChild(term());
                 parseTreeNode.addChild(term_x());
+            } else {
+                emptyString(parseTreeNode);
             }
         } else {
             syntaxError("End of File Reached");
@@ -524,6 +530,8 @@ public class Parser {
                 consume("DIV", parseTreeNode);
                 parseTreeNode.addChild(factor());
                 parseTreeNode.addChild(factor_x());
+            } else {
+                emptyString(parseTreeNode);
             }
         } else {
             syntaxError("End of File Reached");
@@ -549,6 +557,8 @@ public class Parser {
                 consume("EXP", parseTreeNode);
                 parseTreeNode.addChild(exponent());
                 parseTreeNode.addChild(exponent_x());
+            } else {
+                emptyString(parseTreeNode);
             }
         } else {
             syntaxError("End of File Reached");
@@ -591,7 +601,7 @@ public class Parser {
                 consume(lookahead, parseTreeNode);
             }else if(lookahead.equals("OPENPAR")){
                 consume("OPENPAR", parseTreeNode);
-                numoper();
+                parseTreeNode.addChild(numoper());
                 consume("CLOSEPAR", parseTreeNode);
             }else {
                 syntaxError();
@@ -633,20 +643,21 @@ public class Parser {
         ParseTreeNode parseTreeNode = new ParseTreeNode("boolderiv");
         if (pos < inputList.size()) {
             switch (lookahead) {
-                //case "NUMLIT":
                 case "SUB":
                 case "OPENPAR": //conflict with openpar
-                //case "IDENT":
                 case "INVERT":
                 case "TRUE":
                 case "FALSE":
                     parseTreeNode.addChild(condition());
                     parseTreeNode.addChild(boolderiv_x());
+                    break;
+                default:
+                    if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
+                        parseTreeNode.addChild(condition());
+                        parseTreeNode.addChild(boolderiv_x());
+                    }
             }
-            if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
-                parseTreeNode.addChild(condition());
-                parseTreeNode.addChild(boolderiv_x());
-            }
+
         } else {
             syntaxError("End of File Reached");
         }
@@ -663,7 +674,9 @@ public class Parser {
                     parseTreeNode.addChild(condition());
                     parseTreeNode.addChild(boolderiv_x());
                     break;
-                //else, do nothing
+                default:
+                    emptyString(parseTreeNode);
+                    break;
             }
         } else {
             syntaxError("End of File Reached");
@@ -951,6 +964,8 @@ public class Parser {
         if (pos < inputList.size()) {
             if (lookahead.equals("NOT")) {
                 consume("NOT", parseTreeNode);
+            } else {
+                emptyString(parseTreeNode);
             }
             //else do nothing because epsilon (empty string)
         } else {
@@ -1050,9 +1065,6 @@ public class Parser {
                 case "PRINTERR": //to here is from simple_stmt
                     parseTreeNode.addChild(simple_statement());
                     break;
-//                case "IDENT":
-//                    parseTreeNode.addChild(varassign());
-//                    break;
                 case "OPENBR":
                     consume("OPENBR", parseTreeNode);
                     parseTreeNode.addChild(body_x());
@@ -1078,8 +1090,9 @@ public class Parser {
             if (lookahead.equals("FUNNEL")) {
                 consume("FUNNEL", parseTreeNode);
                 parseTreeNode.addChild(funnel_right());
+            } else {
+                emptyString(parseTreeNode);
             }
-            //else do nothing because epsilon (empty string)
         } else {
             syntaxError("End of File Reached");
         }
@@ -1129,6 +1142,9 @@ public class Parser {
                 case "DISTILL":
                     parseTreeNode.addChild(body());
                     parseTreeNode.addChild(body_x());
+                    break;
+                default:
+                    emptyString(parseTreeNode);
                     break;
             }
             //else do nothing because epsilon (empty string)
@@ -1227,9 +1243,11 @@ public class Parser {
     ParseTreeNode case_x() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("case_x");
         if (pos < inputList.size()) {
-            if (lookahead.equals("NUMLIT")) {
+            if (lookahead.startsWith("NUMLIT")) {
                 parseTreeNode.addChild(when_case());
                 parseTreeNode.addChild(case_x());
+            }else {
+                emptyString(parseTreeNode);
             }
         } else {
             syntaxError("End of File Reached");
@@ -1241,7 +1259,7 @@ public class Parser {
     ParseTreeNode when_case() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("when_case");
         if (pos < inputList.size()) {
-            if (lookahead.equals("NUMLIT")) {
+            if (lookahead.startsWith("NUMLIT")) {
                 parseTreeNode.addChild(numexpr());
                 parseTreeNode.addChild(case_stmt());
             }
