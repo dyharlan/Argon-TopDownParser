@@ -418,15 +418,12 @@ public class Parser {
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "SUB":
-                //case "NUMLIT":
-                //case "IDENT": //conflict with IDENT
                 case "OPENPAR":
                     System.out.println("LOOKAHEAD: " + lookahead);
                     node.addChild(numoper());
                     break;
                 default:
                     if(lookahead.startsWith("NUMLIT") || lookahead.startsWith("IDENT")){
-                        System.out.println("LOOKAHEAD: " + lookahead);
                         node.addChild(numoper());
                     }
             }
