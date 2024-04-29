@@ -1,16 +1,13 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ParseTree {
-    private Node root;
+    private ParseTreeNode root;
 
-    public ParseTree(Node root) {
+    public ParseTree(ParseTreeNode root) {
         this.root = root;
     }
 
-    public Node getRoot() {
+    public ParseTreeNode getRoot() {
         return this.root;
     }
 

@@ -3,16 +3,16 @@ package org.example;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node {
+public class ParseTreeNode {
     private String value;
-    private List<Node> children;
+    private List<ParseTreeNode> children;
 
-    public Node(String value) {
+    public ParseTreeNode(String value) {
         this.value = value;
         //this.children = new ArrayList<>();
     }
 
-    public void addChild(Node child) {
+    public void addChild(ParseTreeNode child) {
         if(this.children == null){
             this.children = new ArrayList<>();
         }
@@ -23,7 +23,7 @@ public class Node {
         return this.value;
     }
 
-    public List<Node> getChildren() {
+    public List<ParseTreeNode> getChildren() {
         return this.children;
     }
 
@@ -41,7 +41,7 @@ public class Node {
 
         // Print the children of the node
        if(children != null){
-           for (Node child : children) {
+           for (ParseTreeNode child : children) {
                child.print(depth + 1);
            }
        }
