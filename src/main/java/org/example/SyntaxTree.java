@@ -4,7 +4,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 class ASTNode {
+    List<ASTNode> children;
+    String expressionType;
+    public ASTNode(String expressionType) {
+        this.expressionType = expressionType;
+    }
+    public void print(int depth) {
+        // Print indentation
+        for (int i = 0; i < depth; i++) {
+            System.out.print(" | ");
+            if (i == depth-1) {
+                System.out.print(" ↳ ");
+            }
+        }
 
+        // Print the value of the node
+        System.out.println(expressionType);
+
+        // Print the children of the node
+        if(children != null){
+            for (ASTNode child : children) {
+                child.print(depth + 1);
+            }
+        }
+    }
+    public void addChild(ASTNode child) {
+        if (children == null) {
+            children = new ArrayList<>();
+        }
+        this.children.add(child);
+    }
+}
+class StatementsNode extends ASTNode {
+    StatementsNode() {
+        super("Statements");
+    }
+
+    public List<ASTNode> getStatements() {
+        return children;
+    }
 }
 enum PrintType {
     PRINT,
@@ -17,26 +55,13 @@ enum PrintType {
             case PRINTERR -> "PRINTERR";
         };
     }
-
 }
-class StatementsNode extends ASTNode {
-    private final List<ASTNode> statements;
 
-    StatementsNode() {
-        this.statements = new ArrayList<>();
-    }
-
-    public void addStatement(ASTNode statement) {
-        this.statements.add(statement);
-    }
-    public List<ASTNode> getStatements() {
-        return statements;
-    }
-}
 class PrintNode extends ASTNode {
     PrintType printType;
     StringBuilder content;
     public PrintNode(PrintType printType, StringBuilder content) {
+        super("Print");
         this.printType = printType;
         this.content = content;
     }
@@ -64,6 +89,7 @@ public class SyntaxTree {
                 statements(statementsNode);
             }
         }
+        root.print(0);
     }
 
     public void statements(ParseTreeNode statementsNode){
@@ -151,7 +177,7 @@ public class SyntaxTree {
                 }
             }
         }
-        root.addStatement(new PrintNode(type, sb));
+        root.addChild(new PrintNode(type, sb));
         this.processedStatement++;
     }
 
