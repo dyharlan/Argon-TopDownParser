@@ -35,13 +35,12 @@ public class Parser {
         }
     }
 
-    void addToTree(String str) {
-
+    void emptyString(ParseTreeNode parent) {
+        parent.addChild(new ParseTreeNode("Empty"));
     }
 
     void syntaxError(String message) {
         //System.out.println("Syntax Error: " + message);
-
         //System.exit(0);
         throw new RuntimeException("Syntax Error: " + message);
     }
@@ -96,9 +95,6 @@ public class Parser {
                 case "DISTILL":
                     parseTreeNode.addChild(compound_statement());
                     break;
-//                case "IDENT":
-//                    parseTreeNode.addChild(varassign());
-//                    break;
                 default:
                     if(lookahead.startsWith("IDENT")){
                         parseTreeNode.addChild(varassign());
@@ -195,10 +191,12 @@ public class Parser {
                     parseTreeNode.addChild(numtype());
                     if(lookahead.startsWith("IDENT")){
                         consume(lookahead, parseTreeNode);
+                        parseTreeNode.addChild(assignment());
+                        consume("SEMICOLON", parseTreeNode);
+                    }else{
+                        syntaxError("Identifier not found.");
                     }
-                    //consume("IDENT", parseTreeNode);
-                    parseTreeNode.addChild(assignment());
-                    consume("SEMICOLON", parseTreeNode);
+
                     break;
             }
         } else {
@@ -214,13 +212,6 @@ public class Parser {
     ParseTreeNode varassign(){
         ParseTreeNode parseTreeNode = new ParseTreeNode("varassign");
         if (pos < inputList.size()) {
-//            switch (lookahead) {
-//                case "IDENT":
-//                    consume("IDENT", parseTreeNode);
-//                    parseTreeNode.addChild(assignment());
-//                    consume("SEMICOLON", parseTreeNode);
-//                    break;
-//            }
             if(lookahead.startsWith("IDENT")){
                 consume(lookahead, parseTreeNode);
                 parseTreeNode.addChild(assignment());
@@ -421,36 +412,26 @@ public class Parser {
     }
 
     ParseTreeNode assign_after() {
-        ParseTreeNode parseTreeNode = new ParseTreeNode("assign_after");
+        ParseTreeNode node = new ParseTreeNode("assign_after");
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "SUB":
                 //case "NUMLIT":
                 //case "IDENT": //conflict with IDENT
                 case "OPENPAR":
-//                    if(lookahead.startsWith("IDENT")){
-//                        //consume("IDENT", parseTreeNode);
-//                        consume(lookahead, parseTreeNode);
-//                    }
-                    parseTreeNode.addChild(numoper());
+                    System.out.println("LOOKAHEAD: " + lookahead);
+                    node.addChild(numoper());
                     break;
-                //case "IDENT": //conflict with IDENT
-                    //consume("IDENT");
-                    //break;
+                default:
+                    if(lookahead.startsWith("NUMLIT") || lookahead.startsWith("IDENT")){
+                        System.out.println("LOOKAHEAD: " + lookahead);
+                        node.addChild(numoper());
+                    }
             }
-            if(lookahead.startsWith("IDENT")){
-                //consume("IDENT", parseTreeNode);
-                consume(lookahead, parseTreeNode);
-                parseTreeNode.addChild(numoper());
-            }
-            if(lookahead.startsWith("NUMLIT")){
-                parseTreeNode.addChild(numoper());
-            }
-
         } else {
             syntaxError("End of File Reached");
         }
-        return parseTreeNode;
+        return node;
     }
 
     // string expressions
@@ -468,17 +449,7 @@ public class Parser {
     ParseTreeNode strterm() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("strterm");
         if (pos < inputList.size()) {
-//            switch (lookahead){
-//                case "IDENT":
-//                    consume("IDENT", parseTreeNode);
-//                    break;
-//                case "STRLIT":
-//                    consume("STRLIT", parseTreeNode);
-//                    break;
-//            }
-            if(lookahead.startsWith("IDENT")){
-                consume(lookahead, parseTreeNode);
-            }else if(lookahead.startsWith("STRLIT")){
+            if(lookahead.startsWith("IDENT") || lookahead.startsWith("STRLIT")){
                 consume(lookahead, parseTreeNode);
             }
         } else {
@@ -593,12 +564,11 @@ public class Parser {
                     consume("SUB", parseTreeNode);
                     parseTreeNode.addChild(num_final());
                     break;
-                //case "IDENT":
-                //case "NUMLIT":
                 case "OPENPAR":
                     parseTreeNode.addChild(num_final());
                     break;
                 default:
+                    System.out.println("lookahead:"+lookahead);
                     if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
                         parseTreeNode.addChild(num_final());
                     } else {
