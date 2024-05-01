@@ -2,7 +2,10 @@ package org.example;
 
 import org.example.AST.*;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 class AssignmentExpressionNode extends ASTNode {
@@ -14,6 +17,48 @@ class AssignmentExpressionNode extends ASTNode {
     }
 
 }
+
+class ArithmeticNode extends ASTNode {
+    TokenType operator;
+    private String value;
+    private final TokenType width;
+    public ArithmeticNode(String expressionType, TokenType operator, TokenType width) {
+        super(expressionType);
+        this.operator = operator;
+        this.width = width;
+    }
+
+    public TokenType getOperator(){
+        return operator;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        if(operator == TokenType.NUMLIT){
+            if(value.compareTo(String.valueOf(BigInteger.valueOf(Long.MAX_VALUE))) >= 1){
+                System.out.println("Value too big to fit inside the destination.");
+                System.exit(0);
+            }
+        }
+        if(operator == TokenType.IDENT){
+            Pattern pattern = Pattern.compile("_(([a-zA-Z0-9]|_)*)|[a-zA-Z](([a-zA-Z0-9]|_)*)$", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(value);
+            boolean matchFound = matcher.find();
+            if(!matchFound) {
+                System.out.println("Invalid identifier.");
+                System.exit(0);
+            }
+        }
+        this.value = value;
+    }
+}
+
+
+
+
 
 public class SyntaxTree {
     private final StatementsNode root;
@@ -109,13 +154,13 @@ public class SyntaxTree {
                 System.out.println("\n\nUninitialized Variables are not allowed in argon.");
                 System.exit(0);
             }
-            assignment(varAttribs.get(3),variableDeclarationNode);
+            assignment(varAttribs.get(3),variableDeclarationNode,numType);
             root.addChild(variableDeclarationNode);
 
 
         }
     }
-    public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode){
+    public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode, TokenType width){
         assert assignmentParseTreeNode.getChildren().get(0).getValue().equals("assign_oper"):"Invalid index to check for assign oper!!!";
         String varAssignType = assignmentParseTreeNode.getChildren().get(0).getChildren().get(0).getValue();
         System.out.println("var assign type: "+varAssignType);
@@ -138,33 +183,75 @@ public class SyntaxTree {
         }
         assert assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after"):"Invalid index to check for assign_after!!!";
         if(assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after")){
-            assign_after(assignmentParseTreeNode.getChildren().get(1),assignmentExpressionNode);
+            assign_after(assignmentParseTreeNode.getChildren().get(1),assignmentExpressionNode,width);
         }
 
         variableDeclarationNode.addChild(assignmentExpressionNode);
     }
 
-    public void assign_after(ParseTreeNode assignAfterNode, AssignmentExpressionNode parentNode){
+    public void assign_after(ParseTreeNode assignAfterNode, AssignmentExpressionNode parentNode, TokenType width){
         assert assignAfterNode.getChildren().get(0).getValue().equals("numoper"):"Invalid index to check for numoper!!!";
-        numoper(assignAfterNode.getChildren().get(0), parentNode);
+        numoper(assignAfterNode.getChildren().get(0), parentNode, width);
     }
-    public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode){
-        for(ParseTreeNode term: numOperNode.getChildren()){
-            if(term.getValue().equals("term")){
-                term(term,parentNode);
-            }else if(term.getValue().equals("term_x")){
-                term_x(term,parentNode);
+    public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode, TokenType width){
+        ArithmeticNode l = null;
+        ArithmeticNode r = null;
+        for(ParseTreeNode op: numOperNode.getChildren()){
+            if(op.getValue().equals("term")){
+                l = term(op, width);
+            }else if(op.getValue().equals("term_x")){
+                r = term_x(op,width);
+                r.addChild(l,0);
             }
         }
+        parentNode.addChild(r);
+    }
+    int x = 0;
+    public ArithmeticNode term(ParseTreeNode termNode, TokenType width){
+        return new ArithmeticNode("term" + x++,TokenType.IDENT,width);
     }
 
-    public void term(ParseTreeNode termNode,AssignmentExpressionNode parentNode){
-
+    public ArithmeticNode term_x(ParseTreeNode termNode, TokenType width){
+        ArithmeticNode subroot = null;
+        ArithmeticNode l = null;
+        ArithmeticNode r = null;
+        for(ParseTreeNode op: termNode.getChildren()){
+            System.out.println("op "+op.getValue());
+            if(op.getValue().equals("ADD") || op.getValue().equals("SUB")){
+                TokenType operator = null;
+                if(op.getValue().equals("ADD")){
+                    operator = TokenType.ADD;
+                }else if (op.getValue().equals("SUB")){
+                    operator = TokenType.SUB;
+                }else {
+                    System.out.println("Invalid operator for term!!!");
+                    System.exit(0);
+                }
+                subroot = new ArithmeticNode(op.getValue(),operator,width);
+            }
+            else if(op.getValue().equals("term")){
+                l = term(op, width);
+            }
+            else if(op.getValue().equals("term_x")){
+                //if(!op.getChildren().get(0).getValue().equals("Empty")){
+                    r = term_x(op,width);
+                    if(r == null){
+                        subroot.addChild(l,0);
+                        break;
+                    }
+                    System.out.println(r);
+                    r.addChild(l,0);
+                    assert subroot != null;
+                    subroot.addChild(r);
+                    return subroot;
+                //}
+            }
+        }
+        return subroot;
     }
 
-    public void term_x(ParseTreeNode termNode,AssignmentExpressionNode parentNode){
 
-    }
+
 
     public void stdio(ParseTreeNode stdioNode){
         if(stdioNode.getChildren().get(0).getValue().equals("stdout")){

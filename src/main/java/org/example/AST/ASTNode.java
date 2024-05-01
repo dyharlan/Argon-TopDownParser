@@ -34,5 +34,14 @@ public class ASTNode {
         }
         this.children.add(child);
     }
+    public void addChild(ASTNode child, Integer pos) {
+        if (children == null) {
+            children = new ArrayList<>();
+        }
+        this.children.add(pos,child);
+    }
+    public List<ASTNode> getChildren() {
+        return children;
+    }
 }
 

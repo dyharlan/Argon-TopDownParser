@@ -8,8 +8,6 @@ public class StatementsNode extends ASTNode {
         super("Statements");
     }
 
-    public List<ASTNode> getStatements() {
-        return children;
-    }
+
 }
 

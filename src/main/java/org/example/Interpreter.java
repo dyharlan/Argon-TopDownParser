@@ -12,8 +12,8 @@ public class Interpreter {
 
     }
     public void interpret(StatementsNode root){
-        if(root.getStatements() != null){
-            for(ASTNode statement: root.getStatements()){
+        if(root.getChildren() != null){
+            for(ASTNode statement: root.getChildren()){
                 //laging nahuhuli stderr sa java??
                 if(statement instanceof PrintNode p){
                     if(p.getPrintType() == PrintType.PRINT){

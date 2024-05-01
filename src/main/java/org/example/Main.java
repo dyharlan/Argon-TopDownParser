@@ -30,6 +30,7 @@ public class Main {
         syntaxTree.buildAST(parseTree);
         Interpreter i = new Interpreter();
         i.interpret(syntaxTree.getRoot());
+
         System.out.println("\n\nBuild complete.");
     }
 }
