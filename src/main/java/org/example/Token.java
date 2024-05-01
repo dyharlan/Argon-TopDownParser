@@ -2,11 +2,11 @@ package org.example;
 
 public class Token {
     // private String name;
-    private TokenTypes type;
+    private TokenType type;
     private String value;
     private int line;
 
-    public Token(TokenTypes type, String value, int line) {
+    public Token(TokenType type, String value, int line) {
         // this.name = name;
         this.type = type;
         this.value = value;
@@ -25,11 +25,11 @@ public class Token {
      * }
      */
 
-    public TokenTypes getType() {
+    public TokenType getType() {
         return type;
     }
 
-    public void setType(TokenTypes type) {
+    public void setType(TokenType type) {
         this.type = type;
     }
 
@@ -54,7 +54,7 @@ public class Token {
                 .replace("\t", "\\t")
                 .replace("\r", "\\r")
                 .replace("\b", "\\b")
-                .replace("\'", "\\\'")
+                //.replace("\'", "\\\'")
                 .replace("\"", "\\\"")
                 .replace("\f", "\\f");
     }

@@ -1,70 +1,18 @@
 package org.example;
 
-import java.util.ArrayList;
+import org.example.AST.*;
+
 import java.util.List;
 
-class ASTNode {
-    List<ASTNode> children;
-    String expressionType;
-    public ASTNode(String expressionType) {
-        this.expressionType = expressionType;
-    }
-    public void print(int depth) {
-        // Print indentation
-        for (int i = 0; i < depth; i++) {
-            System.out.print(" | ");
-            if (i == depth-1) {
-                System.out.print(" ↳ ");
-            }
-        }
 
-        // Print the value of the node
-        System.out.println(expressionType);
-
-        // Print the children of the node
-        if(children != null){
-            for (ASTNode child : children) {
-                child.print(depth + 1);
-            }
-        }
-    }
-    public void addChild(ASTNode child) {
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        this.children.add(child);
-    }
-}
-class StatementsNode extends ASTNode {
-    StatementsNode() {
-        super("Statements");
+class AssignmentExpressionNode extends ASTNode {
+    TokenType varAssignType;
+    public AssignmentExpressionNode(TokenType varAssignType) {
+        super("Assignment Expression");
+        this.varAssignType = varAssignType;
+        assert varAssignType == TokenType.ASSIGN || varAssignType == TokenType.ADDASSIGN || varAssignType == TokenType.SUBASSIGN || varAssignType == TokenType.EXPASSIGN || varAssignType == TokenType.MULASSIGN || varAssignType == TokenType.DIVASSIGN : "Invalid assign type!!!";
     }
 
-    public List<ASTNode> getStatements() {
-        return children;
-    }
-}
-enum PrintType {
-    PRINT,
-    PRINTLN,
-    PRINTERR;
-    public String toString() {
-        return switch (this) {
-            case PRINT -> "PRINT";
-            case PRINTLN -> "PRINTLN";
-            case PRINTERR -> "PRINTERR";
-        };
-    }
-}
-
-class PrintNode extends ASTNode {
-    PrintType printType;
-    StringBuilder content;
-    public PrintNode(PrintType printType, StringBuilder content) {
-        super("Print");
-        this.printType = printType;
-        this.content = content;
-    }
 }
 
 public class SyntaxTree {
@@ -78,8 +26,6 @@ public class SyntaxTree {
     public StatementsNode getRoot() {
         return root;
     }
-
-
 
     public void buildAST(ParseTree tree){
         if(tree.getRoot().getValue().equals("program")){
@@ -130,10 +76,94 @@ public class SyntaxTree {
 
 
     public void simpleStatement(ParseTreeNode simpleStatementNode){
-        if(simpleStatementNode.getChildren().get(0).getValue().equals("stdio")){
-            ParseTreeNode stdioNode = simpleStatementNode.getChildren().get(0);
-            stdio(stdioNode);
+        ParseTreeNode childNode = simpleStatementNode.getChildren().get(0);
+        if(childNode.getValue().equals("stdio")){
+            stdio(childNode);
+        } else if(childNode.getValue().equals("vardeclare")){
+            vardeclare(childNode);
         }
+    }
+
+    public void vardeclare(ParseTreeNode varNode){
+        if(varNode.getChildren() != null){
+            List<ParseTreeNode> varAttribs = varNode.getChildren();
+            TokenType mutability = null;
+            TokenType numType = null;
+            String varName = null;
+            //mut_type
+            if(varAttribs.get(0).getValue().equals("REACTIVE")){
+                mutability = TokenType.REACTIVE;
+            }else if(varAttribs.get(0).getValue().equals("INERT")){
+                mutability = TokenType.INERT;
+            }
+            //numtype
+            if(varAttribs.get(1).getValue().equals("MOLE32")){
+                numType = TokenType.MOLE32;
+            }else if(varAttribs.get(1).getValue().equals("MOLE64")){
+                numType = TokenType.MOLE64;
+            }
+            //IDENT
+            varName = varAttribs.get(2).getValue().substring(6,varAttribs.get(2).getValue().length()-1);
+            VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(mutability, numType, varName);
+            if(varAttribs.get(3).getChildren() == null){
+                System.out.println("\n\nUninitialized Variables are not allowed in argon.");
+                System.exit(0);
+            }
+            assignment(varAttribs.get(3),variableDeclarationNode);
+            root.addChild(variableDeclarationNode);
+
+
+        }
+    }
+    public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode){
+        assert assignmentParseTreeNode.getChildren().get(0).getValue().equals("assign_oper"):"Invalid index to check for assign oper!!!";
+        String varAssignType = assignmentParseTreeNode.getChildren().get(0).getChildren().get(0).getValue();
+        System.out.println("var assign type: "+varAssignType);
+        AssignmentExpressionNode assignmentExpressionNode = null;
+        if(varAssignType.equals("ASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
+        }else if(varAssignType.equals("ADDASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ADDASSIGN);
+        }else if(varAssignType.equals("SUBASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.SUBASSIGN);
+        }else if(varAssignType.equals("EXPASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.EXPASSIGN);
+        }else if(varAssignType.equals("MULASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.MULASSIGN);
+        }else if(varAssignType.equals("DIVASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.DIVASSIGN);
+        } else {
+            System.out.println("\n\nInvalid Assignment Operation.");
+            System.exit(0);
+        }
+        assert assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after"):"Invalid index to check for assign_after!!!";
+        if(assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after")){
+            assign_after(assignmentParseTreeNode.getChildren().get(1),assignmentExpressionNode);
+        }
+
+        variableDeclarationNode.addChild(assignmentExpressionNode);
+    }
+
+    public void assign_after(ParseTreeNode assignAfterNode, AssignmentExpressionNode parentNode){
+        assert assignAfterNode.getChildren().get(0).getValue().equals("numoper"):"Invalid index to check for numoper!!!";
+        numoper(assignAfterNode.getChildren().get(0), parentNode);
+    }
+    public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode){
+        for(ParseTreeNode term: numOperNode.getChildren()){
+            if(term.getValue().equals("term")){
+                term(term,parentNode);
+            }else if(term.getValue().equals("term_x")){
+                term_x(term,parentNode);
+            }
+        }
+    }
+
+    public void term(ParseTreeNode termNode,AssignmentExpressionNode parentNode){
+
+    }
+
+    public void term_x(ParseTreeNode termNode,AssignmentExpressionNode parentNode){
+
     }
 
     public void stdio(ParseTreeNode stdioNode){
@@ -194,7 +224,16 @@ public class SyntaxTree {
     public void strTerm(ParseTreeNode strTermNode, StringBuilder sb){
         if(strTermNode.getValue().equals("strterm")){
             ParseTreeNode strlit = strTermNode.getChildren().get(0);
-            sb.append(strlit.getValue(), 7, strlit.getValue().length()-1);
+            String escapedString = strlit.getValue().replace("\\n","\n");
+            //re-escape escape sequences
+            escapedString = escapedString.replace("\\n","\n");
+            escapedString = escapedString.replace("\\t","\t");
+            escapedString = escapedString.replace("\\r","\r");
+            escapedString = escapedString.replace("\\b","\b");
+            escapedString = escapedString.replace("\\\"","\"");
+            escapedString = escapedString.replace("\\f","\f");
+            escapedString = escapedString.replace("\\\\","\\");
+            sb.append(escapedString, 7, escapedString.length()-1);
         }
     }
     public void strTerm_x(ParseTreeNode strTerm_xNode, StringBuilder sb){

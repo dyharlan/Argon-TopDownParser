@@ -99,7 +99,8 @@ public class Parser {
                     break;
                 default:
                     if(lookahead.startsWith("IDENT")){
-                        parseTreeNode.addChild(varassign());
+                        //parseTreeNode.addChild(varassign());
+                        parseTreeNode.addChild(simple_statement());
                     } else {
                         syntaxError("Not a valid statement");
                     }
@@ -128,7 +129,11 @@ public class Parser {
                     parseTreeNode.addChild(stdio());
                     break;
                 default:
-                    syntaxError();
+                    if(lookahead.startsWith("IDENT")){
+                        parseTreeNode.addChild(varassign());
+                    } else {
+                        syntaxError("Not a valid statement");
+                    }
                     break;
             }
         } else {

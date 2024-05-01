@@ -14,7 +14,7 @@ public class TokenList {
         this.tokens.add(token);
     }
 
-    public void addToken(TokenTypes type, String value, int line) {
+    public void addToken(TokenType type, String value, int line) {
         this.tokens.add(TokenFactory.createToken(type, value, line));
     }
 

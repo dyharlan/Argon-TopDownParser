@@ -7,41 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
-enum TokenTypes {
-    // single character tokens (0-7)
-    ASSIGN, COMMA, SEMICOLON, OPENPAR,
-    CLOSEPAR, OPENBR, CLOSEBR, INVERT,
-
-    // possibly two character tokens (8-23)
-    ADD, ADDASSIGN,
-    SUB, SUBASSIGN, RIGHTARROW,
-    MUL, MULASSIGN,
-    DIV, DIVASSIGN,
-    EXP, EXPASSIGN,
-    GT, GTE,
-    LT, LTE,
-
-    // logic operators (24-27)
-    IS, NOT, AND, OR,
-
-    // escape sequences (28-35)
-    NEWLINE, HORZTAB,
-    CARGRET, BACKSPC,
-    BACKSLSH, SINGQUOT,
-    DOUBQUOT, FORMFEED,
-
-    // literals (36-39)
-    IDENT, NUMLIT, STRLIT, BOOLLIT,
-
-    // reserved words (40-56)
-    CATALYZE, DECOMPOSE, DISTILL, FUNNEL, FILTER,
-    FERMENT, FALSE, INERT, INPUT, MOLE32, MOLE64,
-    PRINT, PRINTLN, PRINTERR, REACTIVE, TRUE, UNTIL, WHEN,
-
-    // end of code (57)
-    EOF
-}
-
 enum States {
     START,
     SYM_CROSS,
@@ -123,44 +88,44 @@ public class HandLexer {
                         // single character cases
                         case ',':
                             // create new token; add to list
-                            tokenList.addToken(TokenTypes.COMMA, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.COMMA, String.valueOf(c), line);
                             // token name -> output
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
                         case ';':
-                            tokenList.addToken(TokenTypes.SEMICOLON, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.SEMICOLON, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
                         case '(':
-                            tokenList.addToken(TokenTypes.OPENPAR, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.OPENPAR, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
                         case ')':
-                            tokenList.addToken(TokenTypes.CLOSEPAR, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.CLOSEPAR, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
                         case '{':
-                            tokenList.addToken(TokenTypes.OPENBR, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.OPENBR, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
                         case '}':
-                            tokenList.addToken(TokenTypes.CLOSEBR, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.CLOSEBR, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
                         case '!':
-                            tokenList.addToken(TokenTypes.INVERT, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.INVERT, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
 
                         case '=':
-                            tokenList.addToken(TokenTypes.ASSIGN, String.valueOf(c), line);
+                            tokenList.addToken(TokenType.ASSIGN, String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             break;
@@ -350,14 +315,14 @@ public class HandLexer {
                 case SYM_CROSS:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.ADDASSIGN, "+" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.ADDASSIGN, "+" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.ADD, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.ADD, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -368,20 +333,20 @@ public class HandLexer {
                 case SYM_DASH:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.SUBASSIGN, "-" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.SUBASSIGN, "-" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         case '>':
-                            tokenList.addToken(TokenTypes.RIGHTARROW, "-" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.RIGHTARROW, "-" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.SUB, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.SUB, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -392,14 +357,14 @@ public class HandLexer {
                 case SYM_ASTER:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.MULASSIGN, "*" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.MULASSIGN, "*" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.MUL, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.MUL, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -410,7 +375,7 @@ public class HandLexer {
                 case SYM_SLASH:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.DIVASSIGN, "/" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.DIVASSIGN, "/" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -437,7 +402,7 @@ public class HandLexer {
 
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.DIV, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.DIV, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -448,14 +413,14 @@ public class HandLexer {
                 case SYM_CARET:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.EXPASSIGN, "^" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.EXPASSIGN, "^" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.EXP, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.EXP, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -466,14 +431,14 @@ public class HandLexer {
                 case SYM_GT:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.GTE, ">" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.GTE, ">" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.GT, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.GT, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -484,14 +449,14 @@ public class HandLexer {
                 case SYM_LT:
                     switch (c) {
                         case '=':
-                            tokenList.addToken(TokenTypes.LTE, "<" + String.valueOf(c), line);
+                            tokenList.addToken(TokenType.LTE, "<" + String.valueOf(c), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
                             break;
                         default:
                             c = backtrack();
-                            tokenList.addToken(TokenTypes.LT, String.valueOf(codeString.charAt(curr - 1)), line);
+                            tokenList.addToken(TokenType.LT, String.valueOf(codeString.charAt(curr - 1)), line);
                             output += tokenList.getLatestToken().getType().name() + "\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             currState = States.START;
@@ -504,22 +469,22 @@ public class HandLexer {
                     if (c == '.') { // end of rellogics operator found
                         switch (subst) {
                             case ".is.":
-                                tokenList.addToken(TokenTypes.IS, subst, line);
+                                tokenList.addToken(TokenType.IS, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 break;
                             case ".not.":
-                                tokenList.addToken(TokenTypes.NOT, subst, line);
+                                tokenList.addToken(TokenType.NOT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 break;
                             case ".and.":
-                                tokenList.addToken(TokenTypes.AND, subst, line);
+                                tokenList.addToken(TokenType.AND, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 break;
                             case ".or.":
-                                tokenList.addToken(TokenTypes.OR, subst, line);
+                                tokenList.addToken(TokenType.OR, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 break;
@@ -590,7 +555,7 @@ public class HandLexer {
                         case '^':
                         case '>':
                         case '<':
-                            tokenList.addToken(TokenTypes.NUMLIT, subst, line);
+                            tokenList.addToken(TokenType.NUMLIT, subst, line);
                             output += tokenList.getLatestToken().getType().name() + "("
                                     + tokenList.getLatestToken().getValue() + ")\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -608,8 +573,8 @@ public class HandLexer {
                                 c = advance();
                             }
                             if (c == 'i' || c == 'n' || c == 'a' || c == 'o') { // check if relogic operator
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -631,8 +596,8 @@ public class HandLexer {
 
                         default:
                             if (c == '\n' || c == ' ' || c == '\t' || c == '\r') {
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -702,7 +667,7 @@ public class HandLexer {
                         case '^':
                         case '>':
                         case '<':
-                            tokenList.addToken(TokenTypes.NUMLIT, subst, line);
+                            tokenList.addToken(TokenType.NUMLIT, subst, line);
                             output += tokenList.getLatestToken().getType().name() + "("
                                     + tokenList.getLatestToken().getValue() + ")\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -720,8 +685,8 @@ public class HandLexer {
                                 c = advance();
                             }
                             if (c == 'i' || c == 'n' || c == 'a' || c == 'o') { // check if relogic operator
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 c = backtrack();
@@ -747,8 +712,8 @@ public class HandLexer {
                                 break;
                             }
                             if (c == '\n' || c == ' ' || c == '\t' || c == '\r') {
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -818,7 +783,7 @@ public class HandLexer {
                         case '^':
                         case '>':
                         case '<':
-                            tokenList.addToken(TokenTypes.NUMLIT, subst, line);
+                            tokenList.addToken(TokenType.NUMLIT, subst, line);
                             output += tokenList.getLatestToken().getType().name() + "("
                                     + tokenList.getLatestToken().getValue() + ")\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -836,8 +801,8 @@ public class HandLexer {
                                 c = advance();
                             }
                             if (c == 'i' || c == 'n' || c == 'a' || c == 'o') { // check if relogic operator
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -865,8 +830,8 @@ public class HandLexer {
                                 break;
                             }
                             if (c == '\n' || c == ' ' || c == '\t' || c == '\r') {
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -934,7 +899,7 @@ public class HandLexer {
                         case '^':
                         case '>':
                         case '<':
-                            tokenList.addToken(TokenTypes.NUMLIT, subst, line);
+                            tokenList.addToken(TokenType.NUMLIT, subst, line);
                             output += tokenList.getLatestToken().getType().name() + "("
                                     + tokenList.getLatestToken().getValue() + ")\n";
                             neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -952,8 +917,8 @@ public class HandLexer {
                                 c = advance();
                             }
                             if (c == 'i' || c == 'n' || c == 'a' || c == 'o') { // check if relogic operator
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -983,8 +948,8 @@ public class HandLexer {
                             }
                             if (c == '\n' || c == ' ' || c == '\t' || c == '\r') {
                                 subst = subst.toUpperCase();
-                                tokenList.addToken(TokenTypes.NUMLIT, subst, line);
-                                tokenSet.addToken(TokenTypes.NUMLIT, subst, line);
+                                tokenList.addToken(TokenType.NUMLIT, subst, line);
+                                tokenSet.addToken(TokenType.NUMLIT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1020,8 +985,8 @@ public class HandLexer {
                     }
 
                     if (c == '\"') {
-                        tokenList.addToken(TokenTypes.STRLIT, subst, line);
-                        tokenSet.addToken(TokenTypes.STRLIT, subst, line);
+                        tokenList.addToken(TokenType.STRLIT, subst, line);
+                        tokenSet.addToken(TokenType.STRLIT, subst, line);
 
                         output += tokenList.getLatestToken().getType().name() + "("
                                 + tokenList.getLatestToken().sanitizedValue() + ")\n";
@@ -1043,7 +1008,7 @@ public class HandLexer {
                 case ESCAPE:
                     switch (c) { // java handles unescaping
                         case 'n':
-                            // tokenList.addToken(TokenTypes.NEWLINE, "\\n", line);
+                            // tokenList.addToken(TokenType.NEWLINE, "\\n", line);
                             subst += "\n";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1051,7 +1016,7 @@ public class HandLexer {
                             break;
 
                         case 't':
-                            // tokenList.addToken(TokenTypes.HORZTAB, "\\t", line);
+                            // tokenList.addToken(TokenType.HORZTAB, "\\t", line);
                             subst += "\t";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1059,7 +1024,7 @@ public class HandLexer {
                             break;
 
                         case 'r':
-                            // tokenList.addToken(TokenTypes.CARGRET, "\\r", line);
+                            // tokenList.addToken(TokenType.CARGRET, "\\r", line);
                             subst += "\r";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1067,7 +1032,7 @@ public class HandLexer {
                             break;
 
                         case 'b':
-                            // tokenList.addToken(TokenTypes.BACKSPC, "\\t", line);
+                            // tokenList.addToken(TokenType.BACKSPC, "\\t", line);
                             subst += "\b";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1075,7 +1040,7 @@ public class HandLexer {
                             break;
 
                         case '\\':
-                            // tokenList.addToken(TokenTypes.BACKSLSH, "\\t", line);
+                            // tokenList.addToken(TokenType.BACKSLSH, "\\t", line);
                             subst += "\\";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1083,7 +1048,7 @@ public class HandLexer {
                             break;
 
                         case '\'':
-                            // tokenList.addToken(TokenTypes.SINGQUOT, "\'", line);
+                            // tokenList.addToken(TokenType.SINGQUOT, "\'", line);
                             subst += "\'";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1091,7 +1056,7 @@ public class HandLexer {
                             break;
 
                         case '\"':
-                            // tokenList.addToken(TokenTypes.DOUBQUOT, "\"", line);
+                            // tokenList.addToken(TokenType.DOUBQUOT, "\"", line);
                             subst += "\"";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1099,7 +1064,7 @@ public class HandLexer {
                             break;
 
                         case 'f':
-                            // tokenList.addToken(TokenTypes.FORMFEED, "\\f", line);
+                            // tokenList.addToken(TokenType.FORMFEED, "\\f", line);
                             subst += "\f";
                             // output += tokenList.getLatestToken().getType().name() + "\n";
                             // neatOutput += tokenList.getLatestToken().getType().name() + " ";
@@ -1113,8 +1078,8 @@ public class HandLexer {
                     if (c == '_' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
                         subst += String.valueOf(c);
                     } else {
-                        tokenList.addToken(TokenTypes.IDENT, subst, line);
-                        tokenSet.addToken(TokenTypes.IDENT, subst, line);
+                        tokenList.addToken(TokenType.IDENT, subst, line);
+                        tokenSet.addToken(TokenType.IDENT, subst, line);
                         output += tokenList.getLatestToken().getType().name() + "("
                                 + tokenList.getLatestToken().getValue() + ")\n";
                         neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1131,7 +1096,7 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("catalyze")) {
-                                tokenList.addToken(TokenTypes.CATALYZE, subst, line);
+                                tokenList.addToken(TokenType.CATALYZE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1159,11 +1124,11 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("catalyze")) {
-                                tokenList.addToken(TokenTypes.CATALYZE, subst, line);
+                                tokenList.addToken(TokenType.CATALYZE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1186,13 +1151,13 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("decompose")) {
-                                tokenList.addToken(TokenTypes.DECOMPOSE, subst, line);
+                                tokenList.addToken(TokenType.DECOMPOSE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("distill")) {
-                                tokenList.addToken(TokenTypes.DISTILL, subst, line);
+                                tokenList.addToken(TokenType.DISTILL, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1220,15 +1185,15 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("decompose")) {
-                                tokenList.addToken(TokenTypes.DECOMPOSE, subst, line);
+                                tokenList.addToken(TokenType.DECOMPOSE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("distill")) {
-                                tokenList.addToken(TokenTypes.DISTILL, subst, line);
+                                tokenList.addToken(TokenType.DISTILL, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1251,25 +1216,25 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("funnel")) {
-                                tokenList.addToken(TokenTypes.FUNNEL, subst, line);
+                                tokenList.addToken(TokenType.FUNNEL, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("filter")) {
-                                tokenList.addToken(TokenTypes.FILTER, subst, line);
+                                tokenList.addToken(TokenType.FILTER, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("ferment")) {
-                                tokenList.addToken(TokenTypes.FERMENT, subst, line);
+                                tokenList.addToken(TokenType.FERMENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("false")) {
-                                tokenList.addToken(TokenTypes.FALSE, subst, line);
+                                tokenList.addToken(TokenType.FALSE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1297,23 +1262,23 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("funnel")) {
-                                tokenList.addToken(TokenTypes.FUNNEL, subst, line);
+                                tokenList.addToken(TokenType.FUNNEL, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("filter")) {
-                                tokenList.addToken(TokenTypes.FILTER, subst, line);
+                                tokenList.addToken(TokenType.FILTER, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("ferment")) {
-                                tokenList.addToken(TokenTypes.FERMENT, subst, line);
+                                tokenList.addToken(TokenType.FERMENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("false")) {
-                                tokenList.addToken(TokenTypes.FALSE, subst, line);
+                                tokenList.addToken(TokenType.FALSE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1336,13 +1301,13 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("inert")) {
-                                tokenList.addToken(TokenTypes.INERT, subst, line);
+                                tokenList.addToken(TokenType.INERT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("input")) {
-                                tokenList.addToken(TokenTypes.INPUT, subst, line);
+                                tokenList.addToken(TokenType.INPUT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1370,15 +1335,15 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("inert")) {
-                                tokenList.addToken(TokenTypes.INERT, subst, line);
+                                tokenList.addToken(TokenType.INERT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("input")) {
-                                tokenList.addToken(TokenTypes.INPUT, subst, line);
+                                tokenList.addToken(TokenType.INPUT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1401,13 +1366,13 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("mole32")) {
-                                tokenList.addToken(TokenTypes.MOLE32, subst, line);
+                                tokenList.addToken(TokenType.MOLE32, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("mole64")) {
-                                tokenList.addToken(TokenTypes.MOLE64, subst, line);
+                                tokenList.addToken(TokenType.MOLE64, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1435,15 +1400,15 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("mole32")) {
-                                tokenList.addToken(TokenTypes.MOLE32, subst, line);
+                                tokenList.addToken(TokenType.MOLE32, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("mole64")) {
-                                tokenList.addToken(TokenTypes.INPUT, subst, line);
+                                tokenList.addToken(TokenType.INPUT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.MOLE64, subst, line);
+                                tokenList.addToken(TokenType.MOLE64, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1466,19 +1431,19 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("print")) {
-                                tokenList.addToken(TokenTypes.PRINT, subst, line);
+                                tokenList.addToken(TokenType.PRINT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("println")) {
-                                tokenList.addToken(TokenTypes.PRINTLN, subst, line);
+                                tokenList.addToken(TokenType.PRINTLN, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else if (subst.equals("printerr")) {
-                                tokenList.addToken(TokenTypes.PRINTERR, subst, line);
+                                tokenList.addToken(TokenType.PRINTERR, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1506,19 +1471,19 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("print")) {
-                                tokenList.addToken(TokenTypes.PRINT, subst, line);
+                                tokenList.addToken(TokenType.PRINT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("println")) {
-                                tokenList.addToken(TokenTypes.PRINTLN, subst, line);
+                                tokenList.addToken(TokenType.PRINTLN, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else if (subst.equals("printerr")) {
-                                tokenList.addToken(TokenTypes.PRINTERR, subst, line);
+                                tokenList.addToken(TokenType.PRINTERR, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1541,7 +1506,7 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("reactive")) {
-                                tokenList.addToken(TokenTypes.REACTIVE, subst, line);
+                                tokenList.addToken(TokenType.REACTIVE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1569,11 +1534,11 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("reactive")) {
-                                tokenList.addToken(TokenTypes.REACTIVE, subst, line);
+                                tokenList.addToken(TokenType.REACTIVE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1596,7 +1561,7 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("true")) {
-                                tokenList.addToken(TokenTypes.TRUE, subst, line);
+                                tokenList.addToken(TokenType.TRUE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1624,11 +1589,11 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("true")) {
-                                tokenList.addToken(TokenTypes.TRUE, subst, line);
+                                tokenList.addToken(TokenType.TRUE, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1651,7 +1616,7 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("until")) {
-                                tokenList.addToken(TokenTypes.UNTIL, subst, line);
+                                tokenList.addToken(TokenType.UNTIL, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name();
                                 c = backtrack();
@@ -1679,11 +1644,11 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("until")) {
-                                tokenList.addToken(TokenTypes.UNTIL, subst, line);
+                                tokenList.addToken(TokenType.UNTIL, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name();
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1706,7 +1671,7 @@ public class HandLexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("when")) {
-                                tokenList.addToken(TokenTypes.WHEN, subst, line);
+                                tokenList.addToken(TokenType.WHEN, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
@@ -1734,11 +1699,11 @@ public class HandLexer {
                         case '<':
                         case '.':
                             if (subst.equals("when")) {
-                                tokenList.addToken(TokenTypes.WHEN, subst, line);
+                                tokenList.addToken(TokenType.WHEN, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
-                                tokenList.addToken(TokenTypes.IDENT, subst, line);
+                                tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
                                         + tokenList.getLatestToken().getValue() + ")\n";
                                 neatOutput += tokenList.getLatestToken().getType().name() + "("
@@ -1757,7 +1722,7 @@ public class HandLexer {
             } // end case state switch
         } // end scanner while
           // end of code found!
-        tokenList.addToken(TokenTypes.EOF, null, line);
+        tokenList.addToken(TokenType.EOF, null, line);
         output += tokenList.getLatestToken().getType().name();
         neatOutput += tokenList.getLatestToken().getType().name();
 

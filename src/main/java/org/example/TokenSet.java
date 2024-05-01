@@ -1,8 +1,5 @@
 package org.example;
 
-import org.example.Token;
-import org.example.TokenFactory;
-
 import java.util.HashSet;
 
 public class TokenSet {
@@ -12,7 +9,7 @@ public class TokenSet {
         this.tokens = new HashSet<>();
     }
 
-    public void addToken(TokenTypes type, String value, int line) {
+    public void addToken(TokenType type, String value, int line) {
         this.tokens.add(TokenFactory.createToken(type, value, line));
     }
 

@@ -1,10 +1,10 @@
-//reactive mole32 x = 0c277777;
+reactive mole32 x = a * (b + c) ^ -5;
+reactive mole32 y = 7;
 //print("test");
-printerr("Hello from interpreter 1!");
-print("Hello from interpreter 2!");
-println("Hello from interpreter 3!");
-
-
+//printerr("Hello from interpreter 1!");
+///println("Hello from interpreter 2!");
+//print("\n\t\rHello from interpreter 3!");
+//print("\"Hello from interpreter 4!");
 //filter(x < 32) {
 //print("x is less than 32!");
 //}
