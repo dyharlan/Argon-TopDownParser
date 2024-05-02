@@ -3,7 +3,7 @@ package org.example.AST;
 import org.example.TokenType;
 
 
-public class VariableDeclarationNode extends VarAssignmentNode {
+public class VariableDeclarationNode extends VarAssignmentNode implements Comparable<VariableDeclarationNode> {
     TokenType varMutability;
     TokenType varType;
     public VariableDeclarationNode(TokenType varMutability, TokenType varType, String varName) {
@@ -22,5 +22,9 @@ public class VariableDeclarationNode extends VarAssignmentNode {
         this.varName = varName;
     }
 
+    @Override
+    public int compareTo(VariableDeclarationNode o) {
+        return this.varName.compareTo(o.varName);
+    }
 }
 

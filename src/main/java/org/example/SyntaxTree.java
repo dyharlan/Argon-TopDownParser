@@ -5,21 +5,22 @@ import org.example.AST.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SyntaxTree {
     private final StatementsNode root;
-
+    private final ArrayList<VariableDeclarationNode> variableDeclarations;
     private int processedStatement;
     public SyntaxTree(ParseTree tree){
         this.root = new StatementsNode();
+        this.variableDeclarations = new ArrayList<>();
         processedStatement = 0;
     }
     public StatementsNode getRoot() {
         return root;
     }
-
+    public ArrayList<VariableDeclarationNode> getVariableDeclarations() {
+        return variableDeclarations;
+    }
     public void buildAST(ParseTree tree){
         if(tree.getRoot().getValue().equals("program")){
             ParseTreeNode statementsNode = tree.getRoot().getChildren().get(0);
@@ -97,15 +98,21 @@ public class SyntaxTree {
             }
             //IDENT
             varName = varAttribs.get(2).getValue().substring(6,varAttribs.get(2).getValue().length()-1);
+
+            Collections.sort(variableDeclarations);
             VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(mutability, numType, varName);
+            int index = Collections.binarySearch(variableDeclarations,variableDeclarationNode);
+            if(index >= 0){
+                System.out.println("Variable " + varName + " is already declared");
+                System.exit(0);
+            }
             if(varAttribs.get(3).getChildren() == null){
                 System.out.println("\n\nUninitialized Variables are not allowed in argon.");
                 System.exit(0);
             }
             assignment(varAttribs.get(3),variableDeclarationNode,numType);
             root.addChild(variableDeclarationNode);
-
-
+            variableDeclarations.add(variableDeclarationNode);
         }
     }
     public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode, TokenType width){
@@ -232,72 +239,41 @@ public class SyntaxTree {
         List<ParseTreeNode> children = exponentNode.getChildren();
         if(children.get(0).getValue().equals("SUB")){
             if(children.get(1).getValue().equals("num_final")){
-                List<ParseTreeNode> finalChildren = children.get(1).getChildren();
-                for(ParseTreeNode type: finalChildren){
-                    System.out.println("value: "+type.getValue());
-                    if(type.getValue().equals("numexpr")){
-                        if(type.getChildren().get(0).getValue().startsWith("NUMLIT")){
-                            String literal = type.getValue().substring(7, type.getChildren().get(0).getValue().length()-1);
-                            //handle different bases later
-                            if(width == TokenType.MOLE32){
-                                ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
-                                intLit.setValue(Integer.parseInt(literal));
-                                intLit.setNegative(true);
-                                return intLit;
-                            }
-                            if(width == TokenType.MOLE64){
-                                ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
-                                longLit.setValue(Long.parseLong(literal));
-                                longLit.setNegative(true);
-                                return longLit;
-                            }
-                        }
-                    }else if(type.getValue().startsWith("IDENT")){
-                        String varName = type.getValue().substring(7, finalChildren.getFirst().getValue().length()-1);
-                        ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable: " + varName, TokenType.IDENT);
-                        varNode.setValue(varName);
-                        varNode.setNegative(true);
-                        return varNode;
-                    }else if(type.getValue().startsWith("NUMOPER")){
-                        ArithmeticNode inner = numoper_inner(type,width);
-                        inner.setNegative(true);
-                        return inner;
-                    }
-                }
-
+                ArithmeticNode finalNode = num_final(children.get(1),width);
+                finalNode.setNegative(true);
+                return finalNode;
             }
         }else if(children.get(0).getValue().equals("num_final")){
-            List<ParseTreeNode> finalChildren = children.get(0).getChildren();
-            for(ParseTreeNode type: finalChildren){
+           return num_final(children.getFirst(), width);
+        }
+        return null;
+    }
 
-                if(type.getValue().equals("numexpr")){
-                    if(type.getChildren().get(0).getValue().startsWith("NUMLIT")){
-                        String literal = type.getChildren().get(0).getValue().substring(7, type.getChildren().get(0).getValue().length()-1);
-                        //handle different bases later
-                        if(width == TokenType.MOLE32){
-                            ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
-                            intLit.setValue(Integer.parseInt(literal));
-                            intLit.setNegative(true);
-                            return intLit;
-                        }
-                        if(width == TokenType.MOLE64){
-                            ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
-                            longLit.setValue(Long.parseLong(literal));
-                            longLit.setNegative(true);
-                            return longLit;
-                        }
+    public ArithmeticNode num_final(ParseTreeNode finalNode, TokenType width){
+        for(ParseTreeNode type: finalNode.getChildren()){
+            System.out.println("type: " + type.getValue());
+            if(type.getValue().equals("numexpr")){
+                if(type.getChildren().getFirst().getValue().startsWith("NUMLIT")){
+                    String literal = type.getChildren().getFirst().getValue().substring(7, type.getChildren().getFirst().getValue().length()-1);
+                    //handle different bases later
+                    if(width == TokenType.MOLE32){
+                        ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
+                        intLit.setValue(Integer.parseInt(literal));
+                        return intLit;
                     }
-                }else if(type.getValue().startsWith("IDENT")){
-                    String varName = type.getValue().substring(6, type.getValue().length()-1);
-                    ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable "+ x++ +": " + varName, TokenType.IDENT);
-                    varNode.setValue(varName);
-                    varNode.setNegative(true);
-                    return varNode;
-                }else if(type.getValue().startsWith("NUMOPER")){
-                    ArithmeticNode inner = numoper_inner(type,width);
-                    inner.setNegative(true);
-                    return inner;
+                    if(width == TokenType.MOLE64){
+                        ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
+                        longLit.setValue(Long.parseLong(literal));
+                        return longLit;
+                    }
                 }
+            }else if(type.getValue().startsWith("IDENT")){
+                String varName = type.getValue().substring(6, type.getValue().length()-1);
+                ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable "+ x++ +": " + varName, TokenType.IDENT);
+                varNode.setValue(varName);
+                return varNode;
+            }else if(type.getValue().startsWith("numoper")){
+                return numoper_inner(type,width);
             }
         }
         return null;
