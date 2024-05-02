@@ -2,6 +2,7 @@ package org.example;
 
 import org.example.AST.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -152,20 +153,38 @@ public class SyntaxTree {
                     // left precedence??
                     termNode.addChild(rightNode);
                 }
-
             }else if(op.getValue().equals("term_x")){
                 termNode = term_x(op,width);
             }
         }
-
-
         parentNode.addChild(termNode);
+    }
+
+    public ArithmeticNode numoper_inner(ParseTreeNode numOperInnerNode, TokenType width){
+        ArithmeticNode<TokenType> termNode = null;
+        ArithmeticNode rightNode;
+        Collections.reverse(numOperInnerNode.getChildren());
+        for(ParseTreeNode op: numOperInnerNode.getChildren()){
+            if(op.getValue().equals("term")){
+                rightNode = term(op, width);
+                if (termNode == null) {
+                    // left precedence??
+                    return rightNode;
+                }else{
+                    // left precedence??
+                    termNode.addChild(rightNode);
+                }
+            }else if(op.getValue().equals("term_x")){
+                termNode = term_x(op,width);
+            }
+        }
+        return termNode;
     }
     int x = 0;
     public ArithmeticNode term(ParseTreeNode termNode, TokenType width){
         //return new ArithmeticNode<String>("term" + x++,width);
         ArithmeticNode<TokenType> factorNode = null;
-        ArithmeticNode rightNode = null;
+        ArithmeticNode rightNode;
         Collections.reverse(termNode.getChildren());
         for(ParseTreeNode op: termNode.getChildren()){
             if(op.getValue().equals("factor")){
@@ -185,7 +204,138 @@ public class SyntaxTree {
     }
 
     public ArithmeticNode factor(ParseTreeNode factorNode, TokenType width){
-        return new ArithmeticNode<String>("factor" + x++,width);
+        //return new ArithmeticNode<String>("factor" + x++,width);
+        ArithmeticNode<TokenType> exponentNode  = null;
+        ArithmeticNode rightNode;
+        Collections.reverse(factorNode.getChildren());
+        for(ParseTreeNode op: factorNode.getChildren()){
+            if(op.getValue().equals("exponent")){
+                rightNode = exponent(op, width);
+                // left precedence??
+                if(exponentNode == null){
+                    return rightNode;
+                }else {
+                    exponentNode.addChild(rightNode);
+                }
+            }else if(op.getValue().equals("exponent_x")){
+                exponentNode = exponent_x(op,width);
+
+            }
+        }
+        return exponentNode;
+    }
+
+    public ArithmeticNode exponent(ParseTreeNode exponentNode, TokenType width){
+        //return new ArithmeticNode<String>("exponent" + x++,width);
+        boolean isNegative = false;
+        Collections.reverse(exponentNode.getChildren());
+        List<ParseTreeNode> children = exponentNode.getChildren();
+        if(children.get(0).getValue().equals("SUB")){
+            if(children.get(1).getValue().equals("num_final")){
+                List<ParseTreeNode> finalChildren = children.get(1).getChildren();
+                for(ParseTreeNode type: finalChildren){
+                    System.out.println("value: "+type.getValue());
+                    if(type.getValue().equals("numexpr")){
+                        if(type.getChildren().get(0).getValue().startsWith("NUMLIT")){
+                            String literal = type.getValue().substring(7, type.getChildren().get(0).getValue().length()-1);
+                            //handle different bases later
+                            if(width == TokenType.MOLE32){
+                                ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
+                                intLit.setValue(Integer.parseInt(literal));
+                                intLit.setNegative(true);
+                                return intLit;
+                            }
+                            if(width == TokenType.MOLE64){
+                                ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
+                                longLit.setValue(Long.parseLong(literal));
+                                longLit.setNegative(true);
+                                return longLit;
+                            }
+                        }
+                    }else if(type.getValue().startsWith("IDENT")){
+                        String varName = type.getValue().substring(7, finalChildren.getFirst().getValue().length()-1);
+                        ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable: " + varName, TokenType.IDENT);
+                        varNode.setValue(varName);
+                        varNode.setNegative(true);
+                        return varNode;
+                    }else if(type.getValue().startsWith("NUMOPER")){
+                        ArithmeticNode inner = numoper_inner(type,width);
+                        inner.setNegative(true);
+                        return inner;
+                    }
+                }
+
+            }
+        }else if(children.get(0).getValue().equals("num_final")){
+            List<ParseTreeNode> finalChildren = children.get(0).getChildren();
+            for(ParseTreeNode type: finalChildren){
+                System.out.println("value: "+type.getValue());
+
+                if(type.getValue().equals("numexpr")){
+                    if(type.getChildren().get(0).getValue().startsWith("NUMLIT")){
+                        String literal = type.getChildren().get(0).getValue().substring(7, type.getChildren().get(0).getValue().length()-1);
+                        //handle different bases later
+                        if(width == TokenType.MOLE32){
+                            ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
+                            intLit.setValue(Integer.parseInt(literal));
+                            intLit.setNegative(true);
+                            return intLit;
+                        }
+                        if(width == TokenType.MOLE64){
+                            ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
+                            longLit.setValue(Long.parseLong(literal));
+                            longLit.setNegative(true);
+                            return longLit;
+                        }
+                    }
+                }else if(type.getValue().startsWith("IDENT")){
+                    String varName = type.getValue().substring(6, type.getValue().length()-1);
+                    ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable: " + varName, TokenType.IDENT);
+                    System.out.println("ident1: "+ type.getValue().substring(6, type.getValue().length()-1));
+                    varNode.setValue(varName);
+                    varNode.setNegative(true);
+                    return varNode;
+                }else if(type.getValue().startsWith("NUMOPER")){
+                    ArithmeticNode inner = numoper_inner(type,width);
+                    inner.setNegative(true);
+                    return inner;
+                }
+            }
+        }
+        return null;
+    }
+
+
+
+    public ArithmeticNode<TokenType> exponent_x(ParseTreeNode exponentNode, TokenType width){
+        ArithmeticNode<TokenType> subroot = null;
+        ArithmeticNode rightNode = null;
+        ArithmeticNode<TokenType> r = null;
+        Collections.reverse(exponentNode.getChildren());
+        for(ParseTreeNode op: exponentNode.getChildren()){
+            switch (op.getValue()) {
+                case "EXP" -> {
+                    TokenType operator = TokenType.EXP;
+                    subroot = new ArithmeticNode<>(op.getValue() , width);
+                    subroot.setValue(operator);
+                    if (r == null) {
+                        // left precedence??
+                        subroot.addChild(rightNode);
+                    }else {
+                        System.out.println(r);
+                        // left precedence??
+                        r.addChild(rightNode);
+                        subroot.addChild(r);
+                        return subroot;
+                    }
+                }
+                case "exponent" ->
+                        rightNode = exponent(op, width);
+                case "exponent_x" ->
+                        r = exponent_x(op, width);
+            }
+        }
+        return subroot;
     }
 
     public ArithmeticNode<TokenType> factor_x(ParseTreeNode factorNode, TokenType width){
@@ -202,7 +352,7 @@ public class SyntaxTree {
                     } else if (op.getValue().equals("DIV")) {
                         operator = TokenType.DIV;
                     } else {
-                        System.out.println("Invalid operator for term!!!");
+                        System.out.println("Invalid operator for factor_x!!!");
                         System.exit(0);
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);

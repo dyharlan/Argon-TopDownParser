@@ -9,12 +9,22 @@ public class ArithmeticNode<T> extends ASTNode {
     //TokenType operator;
     private T value;
     private final TokenType width;
+    private boolean isNegative;
     public ArithmeticNode(String expressionType, TokenType width) {
         super(expressionType);
         this.width = width;
+        this.isNegative = false;
     }
     public T getValue() {
         return value;
+    }
+
+    public boolean isNegative() {
+        return isNegative;
+    }
+
+    public void setNegative(boolean negative) {
+        isNegative = negative;
     }
 
     public void setValue(T value) {
@@ -51,10 +61,9 @@ public class ArithmeticNode<T> extends ASTNode {
                 }else {
                     this.value = value;
                 }
-
+                break;
             default:
                 if(value instanceof TokenType t){
-
                     if(t.equals(TokenType.ADD) || t.equals(TokenType.SUB) || t.equals(TokenType.MUL) || t.equals(TokenType.DIV) || t.equals(TokenType.EXP)){
                         this.value = value;
                     }else{
