@@ -1,4 +1,4 @@
-reactive mole32 y = 5+5;
+reactive mole32 y = a+b+c*d+e+f;
 //print("test");
 //printerr("Hello from interpreter 1!");
 ///println("Hello from interpreter 2!");

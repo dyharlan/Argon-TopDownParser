@@ -2,63 +2,10 @@ package org.example;
 
 import org.example.AST.*;
 
-import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-
-class AssignmentExpressionNode extends ASTNode {
-    TokenType varAssignType;
-    public AssignmentExpressionNode(TokenType varAssignType) {
-        super("Assignment Expression");
-        this.varAssignType = varAssignType;
-        assert varAssignType == TokenType.ASSIGN || varAssignType == TokenType.ADDASSIGN || varAssignType == TokenType.SUBASSIGN || varAssignType == TokenType.EXPASSIGN || varAssignType == TokenType.MULASSIGN || varAssignType == TokenType.DIVASSIGN : "Invalid assign type!!!";
-    }
-
-}
-
-class ArithmeticNode extends ASTNode {
-    TokenType operator;
-    private String value;
-    private final TokenType width;
-    public ArithmeticNode(String expressionType, TokenType operator, TokenType width) {
-        super(expressionType);
-        this.operator = operator;
-        this.width = width;
-    }
-
-    public TokenType getOperator(){
-        return operator;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        if(operator == TokenType.NUMLIT){
-            if(value.compareTo(String.valueOf(BigInteger.valueOf(Long.MAX_VALUE))) >= 1){
-                System.out.println("Value too big to fit inside the destination.");
-                System.exit(0);
-            }
-        }
-        if(operator == TokenType.IDENT){
-            Pattern pattern = Pattern.compile("_(([a-zA-Z0-9]|_)*)|[a-zA-Z](([a-zA-Z0-9]|_)*)$", Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(value);
-            boolean matchFound = matcher.find();
-            if(!matchFound) {
-                System.out.println("Invalid identifier.");
-                System.exit(0);
-            }
-        }
-        this.value = value;
-    }
-}
-
-
-
-
 
 public class SyntaxTree {
     private final StatementsNode root;
@@ -121,7 +68,7 @@ public class SyntaxTree {
 
 
     public void simpleStatement(ParseTreeNode simpleStatementNode){
-        ParseTreeNode childNode = simpleStatementNode.getChildren().get(0);
+        ParseTreeNode childNode = simpleStatementNode.getChildren().getFirst();
         if(childNode.getValue().equals("stdio")){
             stdio(childNode);
         } else if(childNode.getValue().equals("vardeclare")){
@@ -134,17 +81,17 @@ public class SyntaxTree {
             List<ParseTreeNode> varAttribs = varNode.getChildren();
             TokenType mutability = null;
             TokenType numType = null;
-            String varName = null;
+            String varName;
             //mut_type
-            if(varAttribs.get(0).getValue().equals("REACTIVE")){
+            if(varAttribs.get(0).getChildren().getFirst().getValue().equals("REACTIVE")){
                 mutability = TokenType.REACTIVE;
-            }else if(varAttribs.get(0).getValue().equals("INERT")){
+            }else if(varAttribs.get(0).getChildren().getFirst().getValue().equals("INERT")){
                 mutability = TokenType.INERT;
             }
             //numtype
-            if(varAttribs.get(1).getValue().equals("MOLE32")){
+            if(varAttribs.get(1).getChildren().getFirst().getValue().equals("MOLE32")){
                 numType = TokenType.MOLE32;
-            }else if(varAttribs.get(1).getValue().equals("MOLE64")){
+            }else if(varAttribs.get(1).getChildren().getFirst().getValue().equals("MOLE64")){
                 numType = TokenType.MOLE64;
             }
             //IDENT
@@ -161,25 +108,21 @@ public class SyntaxTree {
         }
     }
     public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode, TokenType width){
-        assert assignmentParseTreeNode.getChildren().get(0).getValue().equals("assign_oper"):"Invalid index to check for assign oper!!!";
-        String varAssignType = assignmentParseTreeNode.getChildren().get(0).getChildren().get(0).getValue();
+        assert assignmentParseTreeNode.getChildren().getFirst().getValue().equals("assign_oper"):"Invalid index to check for assign oper!!!";
+        String varAssignType = assignmentParseTreeNode.getChildren().getFirst().getChildren().getFirst().getValue();
         System.out.println("var assign type: "+varAssignType);
         AssignmentExpressionNode assignmentExpressionNode = null;
-        if(varAssignType.equals("ASSIGN")){
-            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
-        }else if(varAssignType.equals("ADDASSIGN")){
-            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ADDASSIGN);
-        }else if(varAssignType.equals("SUBASSIGN")){
-            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.SUBASSIGN);
-        }else if(varAssignType.equals("EXPASSIGN")){
-            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.EXPASSIGN);
-        }else if(varAssignType.equals("MULASSIGN")){
-            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.MULASSIGN);
-        }else if(varAssignType.equals("DIVASSIGN")){
-            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.DIVASSIGN);
-        } else {
-            System.out.println("\n\nInvalid Assignment Operation.");
-            System.exit(0);
+        switch (varAssignType) {
+            case "ASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
+            case "ADDASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ADDASSIGN);
+            case "SUBASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.SUBASSIGN);
+            case "EXPASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.EXPASSIGN);
+            case "MULASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.MULASSIGN);
+            case "DIVASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.DIVASSIGN);
+            default -> {
+                System.out.println("\n\nInvalid Assignment Operation.");
+                System.exit(0);
+            }
         }
         assert assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after"):"Invalid index to check for assign_after!!!";
         if(assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after")){
@@ -190,61 +133,136 @@ public class SyntaxTree {
     }
 
     public void assign_after(ParseTreeNode assignAfterNode, AssignmentExpressionNode parentNode, TokenType width){
-        assert assignAfterNode.getChildren().get(0).getValue().equals("numoper"):"Invalid index to check for numoper!!!";
-        numoper(assignAfterNode.getChildren().get(0), parentNode, width);
+        assert assignAfterNode.getChildren().getFirst().getValue().equals("numoper"):"Invalid index to check for numoper!!!";
+        numoper(assignAfterNode.getChildren().getFirst(), parentNode, width);
     }
+
     public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode, TokenType width){
-        ArithmeticNode l = null;
-        ArithmeticNode r = null;
+        ArithmeticNode<TokenType> termNode = null;
+        ArithmeticNode rightNode;
+        Collections.reverse(numOperNode.getChildren());
         for(ParseTreeNode op: numOperNode.getChildren()){
             if(op.getValue().equals("term")){
-                l = term(op, width);
+                rightNode = term(op, width);
+                if (termNode == null) {
+                    // left precedence??
+                    parentNode.addChild(rightNode);
+                    return;
+                }else{
+                    // left precedence??
+                    termNode.addChild(rightNode);
+                }
+
             }else if(op.getValue().equals("term_x")){
-                r = term_x(op,width);
-                r.addChild(l,0);
+                termNode = term_x(op,width);
             }
         }
-        parentNode.addChild(r);
+
+
+        parentNode.addChild(termNode);
     }
     int x = 0;
     public ArithmeticNode term(ParseTreeNode termNode, TokenType width){
-        return new ArithmeticNode("term" + x++,TokenType.IDENT,width);
+        //return new ArithmeticNode<String>("term" + x++,width);
+        ArithmeticNode<TokenType> factorNode = null;
+        ArithmeticNode rightNode = null;
+        Collections.reverse(termNode.getChildren());
+        for(ParseTreeNode op: termNode.getChildren()){
+            if(op.getValue().equals("factor")){
+                rightNode = factor(op, width);
+                // left precedence??
+                if(factorNode == null){
+                    return rightNode;
+                }else {
+                    factorNode.addChild(rightNode);
+                }
+            }else if(op.getValue().equals("factor_x")){
+                factorNode = factor_x(op,width);
+
+            }
+        }
+        return factorNode;
     }
 
-    public ArithmeticNode term_x(ParseTreeNode termNode, TokenType width){
-        ArithmeticNode subroot = null;
-        ArithmeticNode l = null;
-        ArithmeticNode r = null;
-        for(ParseTreeNode op: termNode.getChildren()){
-            System.out.println("op "+op.getValue());
-            if(op.getValue().equals("ADD") || op.getValue().equals("SUB")){
-                TokenType operator = null;
-                if(op.getValue().equals("ADD")){
-                    operator = TokenType.ADD;
-                }else if (op.getValue().equals("SUB")){
-                    operator = TokenType.SUB;
-                }else {
-                    System.out.println("Invalid operator for term!!!");
-                    System.exit(0);
-                }
-                subroot = new ArithmeticNode(op.getValue(),operator,width);
-            }
-            else if(op.getValue().equals("term")){
-                l = term(op, width);
-            }
-            else if(op.getValue().equals("term_x")){
-                //if(!op.getChildren().get(0).getValue().equals("Empty")){
-                    r = term_x(op,width);
-                    if(r == null){
-                        subroot.addChild(l,0);
-                        break;
+    public ArithmeticNode factor(ParseTreeNode factorNode, TokenType width){
+        return new ArithmeticNode<String>("factor" + x++,width);
+    }
+
+    public ArithmeticNode<TokenType> factor_x(ParseTreeNode factorNode, TokenType width){
+        ArithmeticNode<TokenType> subroot = null;
+        ArithmeticNode rightNode = null;
+        ArithmeticNode<TokenType> r = null;
+        Collections.reverse(factorNode.getChildren());
+        for(ParseTreeNode op: factorNode.getChildren()){
+            switch (op.getValue()) {
+                case "MUL", "DIV" -> {
+                    TokenType operator = null;
+                    if (op.getValue().equals("MUL")) {
+                        operator = TokenType.MUL;
+                    } else if (op.getValue().equals("DIV")) {
+                        operator = TokenType.DIV;
+                    } else {
+                        System.out.println("Invalid operator for term!!!");
+                        System.exit(0);
                     }
-                    System.out.println(r);
-                    r.addChild(l,0);
-                    assert subroot != null;
-                    subroot.addChild(r);
-                    return subroot;
-                //}
+                    subroot = new ArithmeticNode<>(op.getValue() , width);
+                    subroot.setValue(operator);
+                    if (r == null) {
+                        // left precedence??
+                        subroot.addChild(rightNode);
+                    }else {
+                        System.out.println(r);
+                        // left precedence??
+                        r.addChild(rightNode);
+                        subroot.addChild(r);
+                        return subroot;
+                    }
+                }
+                case "factor" ->
+                    rightNode = factor(op, width);
+                case "factor_x" ->
+                    r = factor_x(op, width);
+            }
+        }
+        return subroot;
+    }
+
+
+
+    public ArithmeticNode<TokenType> term_x(ParseTreeNode termNode, TokenType width){
+        ArithmeticNode<TokenType> subroot = null;
+        ArithmeticNode rightNode = null;
+        ArithmeticNode<TokenType> r = null;
+        Collections.reverse(termNode.getChildren());
+        for(ParseTreeNode op: termNode.getChildren()){
+            switch (op.getValue()) {
+                case "ADD", "SUB" -> {
+                    TokenType operator = null;
+                    if (op.getValue().equals("ADD")) {
+                        operator = TokenType.ADD;
+                    } else if (op.getValue().equals("SUB")) {
+                        operator = TokenType.SUB;
+                    } else {
+                        System.out.println("Invalid operator for term!!!");
+                        System.exit(0);
+                    }
+                    subroot = new ArithmeticNode<>(op.getValue() , width);
+                    subroot.setValue(operator);
+                    if (r == null) {
+                        // left precedence??
+                        subroot.addChild(rightNode);
+                    }else{
+                        System.out.println(r);
+                        // left precedence??
+                        r.addChild(rightNode);
+                        subroot.addChild(r);
+                        return subroot;
+                    }
+                }
+                case "term" ->
+                    rightNode = term(op, width);
+                case "term_x" ->
+                    r = term_x(op, width);
             }
         }
         return subroot;
@@ -254,12 +272,12 @@ public class SyntaxTree {
 
 
     public void stdio(ParseTreeNode stdioNode){
-        if(stdioNode.getChildren().get(0).getValue().equals("stdout")){
-            ParseTreeNode stdoutNode = stdioNode.getChildren().get(0);
+        if(stdioNode.getChildren().getFirst().getValue().equals("stdout")){
+            ParseTreeNode stdoutNode = stdioNode.getChildren().getFirst();
             //System.out.println("stdoutNode: " + stdoutNode.getValue());
             stdout(stdoutNode);
-        }else if(stdioNode.getChildren().get(0).getValue().equals("stderr")){
-            ParseTreeNode stderrNode = stdioNode.getChildren().get(0);
+        }else if(stdioNode.getChildren().getFirst().getValue().equals("stderr")){
+            ParseTreeNode stderrNode = stdioNode.getChildren().getFirst();
             //System.out.println("stdoutNode: " + stdoutNode.getValue());
             stderr(stderrNode);
         }
@@ -268,15 +286,15 @@ public class SyntaxTree {
     public void stderr(ParseTreeNode stderrNode){
         PrintType type = null;
         //System.out.println("val" +stderrNode.getChildren().get(0).getValue());
-        assert stderrNode.getChildren().get(0).getValue().equals("PRINTERR"): "type not equal to stderr!!!";
-        if(stderrNode.getChildren().get(0).getValue().equals("PRINTERR")){
+        assert stderrNode.getChildren().getFirst().getValue().equals("PRINTERR"): "type not equal to stderr!!!";
+        if(stderrNode.getChildren().getFirst().getValue().equals("PRINTERR")){
             type = PrintType.PRINTERR;
         }
         extractContents(stderrNode, type);
     }
 
     public void stdout(ParseTreeNode stdoutNode){
-        PrintType type = switch (stdoutNode.getChildren().get(0).getChildren().get(0).getValue()) {
+        PrintType type = switch (stdoutNode.getChildren().getFirst().getChildren().getFirst().getValue()) {
             case "PRINT" -> PrintType.PRINT;
             case "PRINTLN" -> PrintType.PRINTLN;
             default -> null;
@@ -310,7 +328,7 @@ public class SyntaxTree {
 
     public void strTerm(ParseTreeNode strTermNode, StringBuilder sb){
         if(strTermNode.getValue().equals("strterm")){
-            ParseTreeNode strlit = strTermNode.getChildren().get(0);
+            ParseTreeNode strlit = strTermNode.getChildren().getFirst();
             String escapedString = strlit.getValue().replace("\\n","\n");
             //re-escape escape sequences
             escapedString = escapedString.replace("\\n","\n");
