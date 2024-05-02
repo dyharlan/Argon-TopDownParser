@@ -2,9 +2,13 @@ package org.example;
 
 import org.example.AST.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 public class SyntaxTree {
     private final StatementsNode root;
@@ -407,6 +411,8 @@ public class SyntaxTree {
         }
     }
 
+
+
     public void stderr(ParseTreeNode stderrNode){
         PrintType type = null;
         //System.out.println("val" +stderrNode.getChildren().get(0).getValue());
@@ -414,7 +420,8 @@ public class SyntaxTree {
         if(stderrNode.getChildren().getFirst().getValue().equals("PRINTERR")){
             type = PrintType.PRINTERR;
         }
-        extractContents(stderrNode, type);
+        String contents = extractContents(stderrNode);
+        root.addChild(new PrintNode(type, contents));
     }
 
     public void stdout(ParseTreeNode stdoutNode){
@@ -423,21 +430,55 @@ public class SyntaxTree {
             case "PRINTLN" -> PrintType.PRINTLN;
             default -> null;
         };
-        extractContents(stdoutNode, type);
+        String contents = extractContents(stdoutNode);
+        root.addChild(new PrintNode(type, contents));
     }
 
-    private void extractContents(ParseTreeNode stderrNode, PrintType type) {
-        ParseTreeNode contents = stderrNode.getChildren().get(2);
+    private String extractContents(ParseTreeNode stdNode) {
+        ParseTreeNode contents = stdNode.getChildren().get(2);
         StringBuilder sb = new StringBuilder();
         if(contents.getChildren() != null){
             for(ParseTreeNode content: contents.getChildren()){
                 if(content.getValue().equals("strexpr")){
                     strExpr(content, sb);
                 }
+//                else if (content.getValue().equals("stdin")) {
+//                    sb.append(stdin(content));
+//                }
             }
         }
-        root.addChild(new PrintNode(type, sb));
-        this.processedStatement++;
+        return sb.toString();
+        //this.processedStatement++;
+    }
+
+    public String stdin(ParseTreeNode stdinNode) {
+        String msg = "";
+        for(ParseTreeNode child: stdinNode.getChildren()){
+            if(child.getValue().equals("content")){
+                msg = msg.concat(extractContents(stdinNode));
+            }
+        }
+        //Scanner in = new Scanner(System.in);
+        System.out.print(msg);
+        String inputString = "";
+        //inputString=inputString.concat(in.nextLine());
+        //in.reset();
+        //in.close();
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Enter a string (Press ^C, ^Z or ^D to end.): ");
+        String str;
+
+        try{
+            //while((str = br.readLine()) != null){
+            //    inputString=inputString.concat(str);
+            //}
+            inputString=inputString.concat(br.readLine());
+            br.close();
+        }catch (IOException e){
+            e.printStackTrace();
+            System.exit(0);
+        }
+        return inputString;
     }
 
     public void strExpr(ParseTreeNode strExprNode, StringBuilder sb){
@@ -452,19 +493,31 @@ public class SyntaxTree {
 
     public void strTerm(ParseTreeNode strTermNode, StringBuilder sb){
         if(strTermNode.getValue().equals("strterm")){
-            ParseTreeNode strlit = strTermNode.getChildren().getFirst();
-            String escapedString = strlit.getValue().replace("\\n","\n");
-            //re-escape escape sequences
-            escapedString = escapedString.replace("\\n","\n");
-            escapedString = escapedString.replace("\\t","\t");
-            escapedString = escapedString.replace("\\r","\r");
-            escapedString = escapedString.replace("\\b","\b");
-            escapedString = escapedString.replace("\\\"","\"");
-            escapedString = escapedString.replace("\\f","\f");
-            escapedString = escapedString.replace("\\\\","\\");
-            sb.append(escapedString, 7, escapedString.length()-1);
+            for(ParseTreeNode term: strTermNode.getChildren()){
+                if(term.getValue().startsWith("STRLIT")){
+                    String escapedString = getEscapedString(term);
+                    sb.append(escapedString, 7, escapedString.length()-1);
+                }else if(term.getValue().equals("stdin")){
+                    sb.append(stdin(term));
+                }
+            }
+
         }
     }
+
+    private static String getEscapedString(ParseTreeNode term) {
+        String escapedString = term.getValue().replace("\\n","\n");
+        //re-escape escape sequences
+        escapedString = escapedString.replace("\\n","\n");
+        escapedString = escapedString.replace("\\t","\t");
+        escapedString = escapedString.replace("\\r","\r");
+        escapedString = escapedString.replace("\\b","\b");
+        escapedString = escapedString.replace("\\\"","\"");
+        escapedString = escapedString.replace("\\f","\f");
+        escapedString = escapedString.replace("\\\\","\\");
+        return escapedString;
+    }
+
     public void strTerm_x(ParseTreeNode strTerm_xNode, StringBuilder sb){
        if(strTerm_xNode.getChildren() != null){
            for(ParseTreeNode term: strTerm_xNode.getChildren()){

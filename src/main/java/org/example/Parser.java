@@ -320,7 +320,7 @@ public class Parser {
             consume("OPENPAR", parseTreeNode);
             parseTreeNode.addChild(content());
             consume("CLOSEPAR", parseTreeNode);
-            consume("SEMICOLON", parseTreeNode);
+            //consume("SEMICOLON", parseTreeNode);
         } else {
             syntaxError("End of File Reached");
         }
@@ -409,9 +409,13 @@ public class Parser {
 //                case "STRLIT":
 //                    parseTreeNode.addChild(strexpr());
 //            }
-            if(lookahead.startsWith("STRLIT")){
+            if(lookahead.startsWith("STRLIT") || lookahead.equals("INPUT")){
                 parseTreeNode.addChild(strexpr());
             }
+//            if(lookahead.equals("INPUT")){
+//                System.out.println("input");
+//                parseTreeNode.addChild(stdin());
+//            }
         } else {
             syntaxError("End of File Reached");
         }
@@ -453,8 +457,11 @@ public class Parser {
     ParseTreeNode strterm() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("strterm");
         if (pos < inputList.size()) {
-            if(lookahead.startsWith("IDENT") || lookahead.startsWith("STRLIT")){
+            if(lookahead.startsWith("STRLIT")){
                 consume(lookahead, parseTreeNode);
+            }else if(lookahead.equals("INPUT")){
+                System.out.println("input");
+                parseTreeNode.addChild(stdin());
             }
         } else {
             syntaxError("End of File Reached");

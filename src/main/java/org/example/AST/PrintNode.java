@@ -2,8 +2,8 @@ package org.example.AST;
 
 public class PrintNode extends ASTNode {
     PrintType printType;
-    StringBuilder content;
-    public PrintNode(PrintType printType, StringBuilder content) {
+    String content;
+    public PrintNode(PrintType printType, String content) {
         super("Print");
         this.printType = printType;
         this.content = content;

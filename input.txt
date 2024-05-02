@@ -1,9 +1,7 @@
-reactive mole32 ____x___ = 12;
-reactive mole32 ____x__ = 2;
-//printerr("Hello from interpreter 1!");
-///println("Hello from interpreter 2!");
-//print("\n\t\rHello from interpreter 3!");
-//print("\"Hello from interpreter 4!");
+printerr("Hello from interpreter 1!");
+println("Hello from interpreter 2!" + input("outer: "+input("inner: ")));
+print("\n\t\rHello from interpreter 3!");
+print("\"Hello from interpreter 4!");
 //filter(x < 32) {
 //print("x is less than 32!");
 //}
