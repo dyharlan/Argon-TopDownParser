@@ -269,7 +269,6 @@ public class SyntaxTree {
         }else if(children.get(0).getValue().equals("num_final")){
             List<ParseTreeNode> finalChildren = children.get(0).getChildren();
             for(ParseTreeNode type: finalChildren){
-                System.out.println("value: "+type.getValue());
 
                 if(type.getValue().equals("numexpr")){
                     if(type.getChildren().get(0).getValue().startsWith("NUMLIT")){
@@ -290,8 +289,7 @@ public class SyntaxTree {
                     }
                 }else if(type.getValue().startsWith("IDENT")){
                     String varName = type.getValue().substring(6, type.getValue().length()-1);
-                    ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable: " + varName, TokenType.IDENT);
-                    System.out.println("ident1: "+ type.getValue().substring(6, type.getValue().length()-1));
+                    ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable "+ x++ +": " + varName, TokenType.IDENT);
                     varNode.setValue(varName);
                     varNode.setNegative(true);
                     return varNode;
