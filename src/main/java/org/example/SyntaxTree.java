@@ -2,97 +2,94 @@ package org.example;
 
 import org.example.AST.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import javax.sound.midi.Soundbank;
+import java.util.*;
 
 public class SyntaxTree {
     private final StatementsNode root;
-    private final ArrayList<VariableDeclarationNode> variableDeclarations;
     private int processedStatement;
-    public SyntaxTree(ParseTree tree){
+    HashMap<String, NumericalVariable> variables;
+    public SyntaxTree(){
         this.root = new StatementsNode();
-        this.variableDeclarations = new ArrayList<>();
+        this.variables = new HashMap<>();
         processedStatement = 0;
     }
     public StatementsNode getRoot() {
         return root;
     }
-    public ArrayList<VariableDeclarationNode> getVariableDeclarations() {
-        return variableDeclarations;
-    }
+
     public void buildAST(ParseTree tree){
         if(tree.getRoot().getValue().equals("program")){
             ParseTreeNode statementsNode = tree.getRoot().getChildren().get(0);
             if(statementsNode != null){
                 //System.out.println("statementsNode: " + statementsNode.getValue());
-                statements(statementsNode);
+                statements(statementsNode,root);
             }
         }
         root.print(0);
     }
 
-    public void statements(ParseTreeNode statementsNode){
+    public void statements(ParseTreeNode statementsNode, StatementsNode root){
        for(ParseTreeNode child: statementsNode.getChildren()){
            if(child.getValue().equals("statement")){
                //System.out.println("statementNodeOuter: " + child.getValue());
-               statement(child);
+               statement(child, root);
            } else if (child.getValue().equals("statements_x")) {
                //System.out.println("statements_xNodeOuter: " + child.getValue());
-               statements_x(child);
+               statements_x(child, root);
            }
        }
     }
 
-    public void statement(ParseTreeNode statementNode){
+    public void statement(ParseTreeNode statementNode, StatementsNode root){
         //System.out.println("stmt: " + statementNode.getValue());
         for(ParseTreeNode child: statementNode.getChildren()){
             if(child.getValue().equals("simple_statement")){
-                simpleStatement(child);
+                simpleStatement(child, root);
             }
         }
 
     }
 
-    public void statements_x(ParseTreeNode statements_xNode){
+    public void statements_x(ParseTreeNode statements_xNode, StatementsNode root){
         if(statements_xNode.getChildren() != null){
             for(ParseTreeNode child : statements_xNode.getChildren()){
                 if(child.getValue().equals("statement")){
                     //System.out.println("child:" + child.getValue());
-                    statement(child);
+                    statement(child, root);
                 }else if(child.getValue().equals("statements_x")){
                     //System.out.println("child:" + child.getValue());
-                    statements_x(child);
+                    statements_x(child, root);
                 }
             }
         }
     }
 
 
-    public void simpleStatement(ParseTreeNode simpleStatementNode){
+    public void simpleStatement(ParseTreeNode simpleStatementNode, StatementsNode root){
         ParseTreeNode childNode = simpleStatementNode.getChildren().getFirst();
         if(childNode.getValue().equals("stdio")){
-            stdio(childNode);
+            stdio(childNode, root);
         } else if(childNode.getValue().equals("vardeclare")){
-            vardeclare(childNode);
+            vardeclare(childNode, root);
         }
     }
 
-    public void vardeclare(ParseTreeNode varNode){
+    public void vardeclare(ParseTreeNode varNode, StatementsNode root){
         if(varNode.getChildren() != null){
             List<ParseTreeNode> varAttribs = varNode.getChildren();
-            TokenType mutability = null;
             TokenType numType = null;
             String varName;
+            boolean isMutable = false;
+            VariableDeclarationNode variableDeclarationNode = null;
             //mut_type
+            //IDENT
+            varName = varAttribs.get(2).getValue().substring(6,varAttribs.get(2).getValue().length()-1);
             if(varAttribs.get(0).getChildren().getFirst().getValue().equals("REACTIVE")){
-                mutability = TokenType.REACTIVE;
+                isMutable = true;
+                variableDeclarationNode = new VariableDeclarationNode(TokenType.REACTIVE, numType, varName);
             }else if(varAttribs.get(0).getChildren().getFirst().getValue().equals("INERT")){
-                mutability = TokenType.INERT;
+                variableDeclarationNode = new VariableDeclarationNode(TokenType.INERT, numType, varName);
             }
             //numtype
             if(varAttribs.get(1).getChildren().getFirst().getValue().equals("MOLE32")){
@@ -100,23 +97,28 @@ public class SyntaxTree {
             }else if(varAttribs.get(1).getChildren().getFirst().getValue().equals("MOLE64")){
                 numType = TokenType.MOLE64;
             }
-            //IDENT
-            varName = varAttribs.get(2).getValue().substring(6,varAttribs.get(2).getValue().length()-1);
 
-            Collections.sort(variableDeclarations);
-            VariableDeclarationNode variableDeclarationNode = new VariableDeclarationNode(mutability, numType, varName);
-            int index = Collections.binarySearch(variableDeclarations,variableDeclarationNode);
-            if(index >= 0){
-                System.out.println("Variable " + varName + " is already declared");
-                System.exit(0);
-            }
+
+
+
             if(varAttribs.get(3).getChildren() == null){
                 System.out.println("\n\nUninitialized Variables are not allowed in argon.");
                 System.exit(0);
             }
+            if(variables.containsKey(varName)){
+                System.out.println("Variable " + varName + " has already been declared.");
+                System.exit(0);
+            }
+            if(numType == TokenType.MOLE32){
+                NumericalVariable<Integer> var32 = new NumericalVariable<>(varName,0, isMutable);
+                variables.put(varName, var32);
+            }else if(numType == TokenType.MOLE64){
+                NumericalVariable<Long> var64 = new NumericalVariable<>(varName,0L, isMutable);
+                variables.put(varName, var64);
+            }
+
             assignment(varAttribs.get(3),variableDeclarationNode,numType);
             root.addChild(variableDeclarationNode);
-            variableDeclarations.add(variableDeclarationNode);
         }
     }
     public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode, TokenType width){
@@ -262,12 +264,22 @@ public class SyntaxTree {
                     //handle different bases later
                     if(width == TokenType.MOLE32){
                         ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
-                        intLit.setValue(Integer.parseInt(literal));
+                        try{
+                            intLit.setValue(Integer.parseInt(literal));
+                        }catch (NumberFormatException nfe){
+                            System.out.println("The value " + literal + " is not valid for " + width);
+                            System.exit(0);
+                        }
                         return intLit;
                     }
                     if(width == TokenType.MOLE64){
                         ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
-                        longLit.setValue(Long.parseLong(literal));
+                        try{
+                            longLit.setValue(Long.parseLong(literal));
+                        }catch (NumberFormatException nfe){
+                            System.out.println("The value " + literal + " is not valid for " + width);
+                            System.exit(0);
+                        }
                         return longLit;
                     }
                 }
@@ -399,21 +411,21 @@ public class SyntaxTree {
 
 
 
-    public void stdio(ParseTreeNode stdioNode){
+    public void stdio(ParseTreeNode stdioNode, StatementsNode root){
         if(stdioNode.getChildren().getFirst().getValue().equals("stdout")){
             ParseTreeNode stdoutNode = stdioNode.getChildren().getFirst();
             //System.out.println("stdoutNode: " + stdoutNode.getValue());
-            stdout(stdoutNode);
+            stdout(stdoutNode,root);
         }else if(stdioNode.getChildren().getFirst().getValue().equals("stderr")){
             ParseTreeNode stderrNode = stdioNode.getChildren().getFirst();
             //System.out.println("stdoutNode: " + stdoutNode.getValue());
-            stderr(stderrNode);
+            stderr(stderrNode,root);
         }
     }
 
 
 
-    public void stderr(ParseTreeNode stderrNode){
+    public void stderr(ParseTreeNode stderrNode, StatementsNode root){
         PrintType type = null;
         //System.out.println("val" +stderrNode.getChildren().get(0).getValue());
         assert stderrNode.getChildren().getFirst().getValue().equals("PRINTERR"): "type not equal to stderr!!!";
@@ -424,7 +436,7 @@ public class SyntaxTree {
         root.addChild(new PrintNode(type, contents));
     }
 
-    public void stdout(ParseTreeNode stdoutNode){
+    public void stdout(ParseTreeNode stdoutNode, StatementsNode root){
         PrintType type = switch (stdoutNode.getChildren().getFirst().getChildren().getFirst().getValue()) {
             case "PRINT" -> PrintType.PRINT;
             case "PRINTLN" -> PrintType.PRINTLN;
@@ -451,32 +463,23 @@ public class SyntaxTree {
         //this.processedStatement++;
     }
 
-    public String stdin(ParseTreeNode stdinNode) {
+    public String stdin(ParseTreeNode stdinNode){
         String msg = "";
         for(ParseTreeNode child: stdinNode.getChildren()){
             if(child.getValue().equals("content")){
                 msg = msg.concat(extractContents(stdinNode));
             }
         }
-        //Scanner in = new Scanner(System.in);
+        Scanner in = new Scanner(System.in);
         System.out.print(msg);
         String inputString = "";
-        //inputString=inputString.concat(in.nextLine());
-        //in.reset();
-        //in.close();
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Enter a string (Press ^C, ^Z or ^D to end.): ");
-        String str;
-
         try{
-            //while((str = br.readLine()) != null){
-            //    inputString=inputString.concat(str);
-            //}
-            inputString=inputString.concat(br.readLine());
-            br.close();
-        }catch (IOException e){
-            e.printStackTrace();
-            System.exit(0);
+            inputString=inputString.concat(in.next());
+        }catch (NoSuchElementException e){
+            in.close();
+            Scanner in2 = new Scanner(System.in);
+            inputString=inputString.concat(in2.next());
+            in2.close();
         }
         return inputString;
     }
@@ -529,8 +532,5 @@ public class SyntaxTree {
            }
        }
     }
-
-
-
 
 }

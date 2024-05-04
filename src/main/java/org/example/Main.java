@@ -26,7 +26,7 @@ public class Main {
         Parser parser = new Parser(inputList);
         ParseTree parseTree = parser.parse();
         parseTree.print();
-        SyntaxTree syntaxTree = new SyntaxTree(parseTree);
+        SyntaxTree syntaxTree = new SyntaxTree();
         syntaxTree.buildAST(parseTree);
         Interpreter i = new Interpreter();
         i.interpret(syntaxTree.getRoot());

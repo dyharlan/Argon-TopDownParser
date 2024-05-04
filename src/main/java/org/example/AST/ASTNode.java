@@ -43,5 +43,9 @@ public class ASTNode {
     public List<ASTNode> getChildren() {
         return children;
     }
+
+    public String getExpressionType() {
+        return expressionType;
+    }
 }
 
