@@ -1,8 +1,5 @@
 reactive mole32 x = 2^3;
-printerr("Hello from interpreter 1!");
-//println("Hello from interpreter 2!" + input("outer: "+input("inner: "+ input("inner inner: ") )));
-print("\n\t\rHello from interpreter 3!");
-//print("\"Hello from interpreter 4!");
+printerr("Hello from interpreter 1!" + x + "asdasdasd");
 //filter(x < 32) {
 //print("x is less than 32!");
 //}

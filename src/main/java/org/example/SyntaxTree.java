@@ -449,8 +449,9 @@ public class SyntaxTree {
         if(stderrNode.getChildren().getFirst().getValue().equals("PRINTERR")){
             type = PrintType.PRINTERR;
         }
-        String contents = extractContents(stderrNode);
-        root.addChild(new PrintNode(type, contents));
+        //String contents = extractContents(stderrNode);
+        PrintNode p = new PrintNode(type);
+        root.addChild(p);
     }
 
     public void stdout(ParseTreeNode stdoutNode, StatementsNode root){
@@ -459,24 +460,21 @@ public class SyntaxTree {
             case "PRINTLN" -> PrintType.PRINTLN;
             default -> null;
         };
-        String contents = extractContents(stdoutNode);
-        root.addChild(new PrintNode(type, contents));
+        PrintNode p = new PrintNode(type);
+        extractContents(stdoutNode, p);
+        root.addChild(p);
     }
 
-    private String extractContents(ParseTreeNode stdNode) {
+    private void extractContents(ParseTreeNode stdNode, PrintNode root) {
         ParseTreeNode contents = stdNode.getChildren().get(2);
-        StringBuilder sb = new StringBuilder();
         if(contents.getChildren() != null){
             for(ParseTreeNode content: contents.getChildren()){
                 if(content.getValue().equals("strexpr")){
-                    strExpr(content, sb);
+                    strExpr(content, root);
                 }
-//                else if (content.getValue().equals("stdin")) {
-//                    sb.append(stdin(content));
-//                }
             }
         }
-        return sb.toString();
+
         //this.processedStatement++;
     }
 

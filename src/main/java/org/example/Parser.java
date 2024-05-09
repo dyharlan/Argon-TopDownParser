@@ -412,12 +412,7 @@ public class Parser {
             if(lookahead.startsWith("STRLIT") || lookahead.equals("INPUT")){
                 parseTreeNode.addChild(strexpr());
             }
-            if(lookahead.startsWith("NUMLIT")){
-                parseTreeNode.addChild(numexpr());
-            }
-            if(lookahead.startsWith("IDENT")){
-                consume(lookahead, parseTreeNode);
-            }
+
 
         } else {
             syntaxError("End of File Reached");
@@ -465,6 +460,10 @@ public class Parser {
             }else if(lookahead.equals("INPUT")){
                 System.out.println("input");
                 parseTreeNode.addChild(stdin());
+            } else if(lookahead.startsWith("NUMLIT")){
+                parseTreeNode.addChild(numexpr());
+            } else if(lookahead.startsWith("IDENT")){
+                consume(lookahead, parseTreeNode);
             }
         } else {
             syntaxError("End of File Reached");
@@ -642,7 +641,6 @@ public class Parser {
     ParseTreeNode numexpr() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("numexpr");
         if (pos < inputList.size() && lookahead.startsWith("NUMLIT")) {
-            //consume("NUMLIT", parseTreeNode);
             consume(lookahead, parseTreeNode);
         } else {
             syntaxError("End of File Reached");
