@@ -28,7 +28,7 @@ public class Main {
         parseTree.print();
         SyntaxTree syntaxTree = new SyntaxTree();
         syntaxTree.buildAST(parseTree);
-        Interpreter i = new Interpreter();
+        Interpreter i = new Interpreter(syntaxTree.getVariables());
         i.interpret(syntaxTree.getRoot());
 
         System.out.println("\n\nBuild complete.");

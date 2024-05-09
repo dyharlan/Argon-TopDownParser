@@ -18,6 +18,10 @@ public class ArithmeticNode<T> extends ASTNode {
     public T getValue() {
         return value;
     }
+    
+    public String getType(){
+        return value.getClass().getSimpleName();
+    }
 
     public boolean isNegative() {
         return isNegative;

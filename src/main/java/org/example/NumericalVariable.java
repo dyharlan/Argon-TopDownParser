@@ -1,5 +1,7 @@
 package org.example;
 
+import java.lang.reflect.Type;
+
 public class NumericalVariable<V> implements Comparable<NumericalVariable<V>>{
     private String name;
     private V value;
@@ -9,6 +11,10 @@ public class NumericalVariable<V> implements Comparable<NumericalVariable<V>>{
         this.name = name;
         this.value = value;
         this.isMutable = isMutable;
+    }
+
+    public String getType(){
+        return value.getClass().getSimpleName();
     }
 
     public String getName() {

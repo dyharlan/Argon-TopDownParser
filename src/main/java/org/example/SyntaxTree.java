@@ -18,6 +18,9 @@ public class SyntaxTree {
         return root;
     }
 
+    public HashMap<String, NumericalVariable> getVariables() {
+        return variables;
+    }
     public void buildAST(ParseTree tree){
         if(tree.getRoot().getValue().equals("program")){
             ParseTreeNode statementsNode = tree.getRoot().getChildren().get(0);
@@ -85,18 +88,19 @@ public class SyntaxTree {
             //mut_type
             //IDENT
             varName = varAttribs.get(2).getValue().substring(6,varAttribs.get(2).getValue().length()-1);
-            if(varAttribs.get(0).getChildren().getFirst().getValue().equals("REACTIVE")){
-                isMutable = true;
-                variableDeclarationNode = new VariableDeclarationNode(TokenType.REACTIVE, numType, varName);
-            }else if(varAttribs.get(0).getChildren().getFirst().getValue().equals("INERT")){
-                variableDeclarationNode = new VariableDeclarationNode(TokenType.INERT, numType, varName);
-            }
             //numtype
             if(varAttribs.get(1).getChildren().getFirst().getValue().equals("MOLE32")){
                 numType = TokenType.MOLE32;
             }else if(varAttribs.get(1).getChildren().getFirst().getValue().equals("MOLE64")){
                 numType = TokenType.MOLE64;
             }
+            if(varAttribs.get(0).getChildren().getFirst().getValue().equals("REACTIVE")){
+                isMutable = true;
+                variableDeclarationNode = new VariableDeclarationNode(TokenType.REACTIVE, numType, varName);
+            }else if(varAttribs.get(0).getChildren().getFirst().getValue().equals("INERT")){
+                variableDeclarationNode = new VariableDeclarationNode(TokenType.INERT, numType, varName);
+            }
+
 
 
 
@@ -109,6 +113,7 @@ public class SyntaxTree {
                 System.out.println("Variable " + varName + " has already been declared.");
                 System.exit(0);
             }
+            assignment(varAttribs.get(3),variableDeclarationNode,numType);
             if(numType == TokenType.MOLE32){
                 NumericalVariable<Integer> var32 = new NumericalVariable<>(varName,0, isMutable);
                 variables.put(varName, var32);
@@ -117,7 +122,6 @@ public class SyntaxTree {
                 variables.put(varName, var64);
             }
 
-            assignment(varAttribs.get(3),variableDeclarationNode,numType);
             root.addChild(variableDeclarationNode);
         }
     }
@@ -126,18 +130,26 @@ public class SyntaxTree {
         String varAssignType = assignmentParseTreeNode.getChildren().getFirst().getChildren().getFirst().getValue();
         System.out.println("var assign type: "+varAssignType);
         AssignmentExpressionNode assignmentExpressionNode = null;
-        switch (varAssignType) {
-            case "ASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
-            case "ADDASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ADDASSIGN);
-            case "SUBASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.SUBASSIGN);
-            case "EXPASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.EXPASSIGN);
-            case "MULASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.MULASSIGN);
-            case "DIVASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.DIVASSIGN);
-            default -> {
-                System.out.println("\n\nInvalid Assignment Operation.");
-                System.exit(0);
+        if(varAssignType.equals("ASSIGN")){
+            assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
+        }else if(variableDeclarationNode instanceof VariableDeclarationNode){
+            System.out.println("Compount assignemnt operations are not allowed on variable declarations.");
+            System.exit(0);
+        }else {
+            switch (varAssignType) {
+                case "ADDASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ADDASSIGN);
+                case "SUBASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.SUBASSIGN);
+                case "EXPASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.EXPASSIGN);
+                case "MULASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.MULASSIGN);
+                case "DIVASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.DIVASSIGN);
+                default -> {
+
+                    System.out.println("\n\nInvalid Assignment Operation.");
+                    System.exit(0);
+                }
             }
         }
+
         assert assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after"):"Invalid index to check for assign_after!!!";
         if(assignmentParseTreeNode.getChildren().get(1).getValue().equals("assign_after")){
             assign_after(assignmentParseTreeNode.getChildren().get(1),assignmentExpressionNode,width);
@@ -286,7 +298,12 @@ public class SyntaxTree {
             }else if(type.getValue().startsWith("IDENT")){
                 String varName = type.getValue().substring(6, type.getValue().length()-1);
                 ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable "+ x++ +": " + varName, TokenType.IDENT);
+                if(!variables.containsKey(varName)){
+                    System.out.println("Variable " + varName + " has not been declared, or is uninitialized.");
+                    System.exit(0);
+                }
                 varNode.setValue(varName);
+
                 return varNode;
             }else if(type.getValue().startsWith("numoper")){
                 return numoper_inner(type,width);

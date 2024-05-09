@@ -412,10 +412,13 @@ public class Parser {
             if(lookahead.startsWith("STRLIT") || lookahead.equals("INPUT")){
                 parseTreeNode.addChild(strexpr());
             }
-//            if(lookahead.equals("INPUT")){
-//                System.out.println("input");
-//                parseTreeNode.addChild(stdin());
-//            }
+            if(lookahead.startsWith("NUMLIT")){
+                parseTreeNode.addChild(numexpr());
+            }
+            if(lookahead.startsWith("IDENT")){
+                consume(lookahead, parseTreeNode);
+            }
+
         } else {
             syntaxError("End of File Reached");
         }

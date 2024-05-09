@@ -11,5 +11,9 @@ public class VarAssignmentNode extends ASTNode {
         super(expressionType);
         this.varName = varName;
     }
+
+    public String getVarName() {
+        return varName;
+    }
 }
 
