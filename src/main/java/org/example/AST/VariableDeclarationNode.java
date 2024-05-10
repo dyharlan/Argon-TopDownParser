@@ -13,14 +13,14 @@ public class VariableDeclarationNode extends VarAssignmentNode implements Compar
             this.varMutability = varMutability;
         } else {
             System.err.println("Variable Mutability not recognized");
-            System.exit(0);
+            System.exit(1);
         }
 
         if(varType == TokenType.MOLE32 || varType == TokenType.MOLE64){
             this.varType = varType;
         } else {
             System.err.println("Variable Size not recognized");
-            System.exit(0);
+            System.exit(1);
         }
         this.varName = varName;
     }

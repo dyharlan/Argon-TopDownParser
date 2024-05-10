@@ -30,12 +30,13 @@ public class HandLexer {
     String errorsStr = "";
 
     // err handling
-    private String error(int line, String message) {
+    private void error(int line, String message) {
         String errString = "[line " + line + "] Error: " + message;
-        System.err.println(errString);
+        System.out.println(errString);
         errorsStr += errString + "\n";
         numErrs++;
-        return errString;
+        System.exit(1);
+        //return errString;
     }
 
     // the scanning part

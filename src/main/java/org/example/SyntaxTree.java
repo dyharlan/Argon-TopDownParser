@@ -2,7 +2,6 @@ package org.example;
 
 import org.example.AST.*;
 
-import javax.sound.midi.Soundbank;
 import java.util.*;
 
 public class SyntaxTree {
@@ -101,17 +100,13 @@ public class SyntaxTree {
                 variableDeclarationNode = new VariableDeclarationNode(TokenType.INERT, numType, varName);
             }
 
-
-
-
-
             if(varAttribs.get(3).getChildren() == null){
                 System.out.println("\n\nUninitialized Variables are not allowed in argon.");
-                System.exit(0);
+                System.exit(1);
             }
             if(variables.containsKey(varName)){
                 System.out.println("Variable " + varName + " has already been declared.");
-                System.exit(0);
+                System.exit(1);
             }
             assignment(varAttribs.get(3),variableDeclarationNode,numType);
             if(numType == TokenType.MOLE32){
@@ -134,7 +129,7 @@ public class SyntaxTree {
             assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
         }else if(variableDeclarationNode instanceof VariableDeclarationNode){
             System.out.println("Compount assignemnt operations are not allowed on variable declarations.");
-            System.exit(0);
+            System.exit(1);
         }else {
             switch (varAssignType) {
                 case "ADDASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ADDASSIGN);
@@ -145,7 +140,7 @@ public class SyntaxTree {
                 default -> {
 
                     System.out.println("\n\nInvalid Assignment Operation.");
-                    System.exit(0);
+                    System.exit(1);
                 }
             }
         }
@@ -253,7 +248,7 @@ public class SyntaxTree {
     public ArithmeticNode exponent(ParseTreeNode exponentNode, TokenType width){
         //return new ArithmeticNode<String>("exponent" + x++,width);
         boolean isNegative = false;
-        Collections.reverse(exponentNode.getChildren());
+        //Collections.reverse(exponentNode.getChildren());
         List<ParseTreeNode> children = exponentNode.getChildren();
         if(children.get(0).getValue().equals("SUB")){
             if(children.get(1).getValue().equals("num_final")){
@@ -277,20 +272,35 @@ public class SyntaxTree {
                     if(width == TokenType.MOLE32){
                         ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
                         try{
-                            intLit.setValue(Integer.parseInt(literal));
+                            if(literal.toLowerCase().startsWith("0x")){
+                                intLit.setValue(Integer.parseInt(literal.toLowerCase().substring(2), 16));
+                            }else if(literal.toLowerCase().startsWith("0c")){
+                                intLit.setValue(Integer.parseInt(literal.toLowerCase().substring(2), 8));
+                            } else {
+                                intLit.setValue(Integer.parseInt(literal));
+                            }
+
                         }catch (NumberFormatException nfe){
-                            System.out.println("The value " + literal + " is not valid for " + width);
-                            System.exit(0);
+                            System.out.println("The value " + literal.toLowerCase() + " is not valid for " + width);
+
+                            System.exit(1);
                         }
                         return intLit;
                     }
                     if(width == TokenType.MOLE64){
                         ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
                         try{
-                            longLit.setValue(Long.parseLong(literal));
+                            if(literal.toLowerCase().startsWith("0x")){
+                                longLit.setValue(Long.parseLong(literal.toLowerCase().substring(2), 16));
+                            }else if(literal.toLowerCase().startsWith("0c")){
+                                longLit.setValue(Long.parseLong(literal.toLowerCase().substring(2), 8));
+                            } else {
+                                longLit.setValue(Long.parseLong(literal));
+                            }
+
                         }catch (NumberFormatException nfe){
-                            System.out.println("The value " + literal + " is not valid for " + width);
-                            System.exit(0);
+                            System.out.println("The value " + literal.toLowerCase() + " is not valid for " + width);
+                            System.exit(1);
                         }
                         return longLit;
                     }
@@ -300,7 +310,7 @@ public class SyntaxTree {
                 ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable "+ x++ +": " + varName, TokenType.IDENT);
                 if(!variables.containsKey(varName)){
                     System.out.println("Variable " + varName + " has not been declared, or is uninitialized.");
-                    System.exit(0);
+                    System.exit(1);
                 }
                 varNode.setValue(varName);
 
@@ -360,7 +370,7 @@ public class SyntaxTree {
                         operator = TokenType.DIV;
                     } else {
                         System.out.println("Invalid operator for factor_x!!!");
-                        System.exit(0);
+                        System.exit(1);
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);
                     subroot.setValue(operator);
@@ -401,7 +411,7 @@ public class SyntaxTree {
                         operator = TokenType.SUB;
                     } else {
                         System.out.println("Invalid operator for term!!!");
-                        System.exit(0);
+                        System.exit(1);
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);
                     subroot.setValue(operator);
@@ -443,83 +453,77 @@ public class SyntaxTree {
 
 
     public void stderr(ParseTreeNode stderrNode, StatementsNode root){
-        PrintType type = null;
+        IoType type = null;
         //System.out.println("val" +stderrNode.getChildren().get(0).getValue());
         assert stderrNode.getChildren().getFirst().getValue().equals("PRINTERR"): "type not equal to stderr!!!";
         if(stderrNode.getChildren().getFirst().getValue().equals("PRINTERR")){
-            type = PrintType.PRINTERR;
+            type = IoType.PRINTERR;
         }
         //String contents = extractContents(stderrNode);
-        PrintNode p = new PrintNode(type);
+        StdioNode p = new StdioNode("PRINTERR",type);
+        extractContents(stderrNode, p);
         root.addChild(p);
     }
 
     public void stdout(ParseTreeNode stdoutNode, StatementsNode root){
-        PrintType type = switch (stdoutNode.getChildren().getFirst().getChildren().getFirst().getValue()) {
-            case "PRINT" -> PrintType.PRINT;
-            case "PRINTLN" -> PrintType.PRINTLN;
+        IoType type = switch (stdoutNode.getChildren().getFirst().getChildren().getFirst().getValue()) {
+            case "PRINT" -> IoType.PRINT;
+            case "PRINTLN" -> IoType.PRINTLN;
             default -> null;
         };
-        PrintNode p = new PrintNode(type);
+        StdioNode p = new StdioNode("PRINT",type);
         extractContents(stdoutNode, p);
         root.addChild(p);
     }
 
-    private void extractContents(ParseTreeNode stdNode, PrintNode root) {
+    private void extractContents(ParseTreeNode stdNode, StdioNode root) {
         ParseTreeNode contents = stdNode.getChildren().get(2);
         if(contents.getChildren() != null){
-            for(ParseTreeNode content: contents.getChildren()){
-                if(content.getValue().equals("strexpr")){
-                    strExpr(content, root);
-                }
-            }
+            content(contents,root);
         }
-
-        //this.processedStatement++;
     }
 
-    public String stdin(ParseTreeNode stdinNode){
-        String msg = "";
-        for(ParseTreeNode child: stdinNode.getChildren()){
-            if(child.getValue().equals("content")){
-                msg = msg.concat(extractContents(stdinNode));
-            }
-        }
-        Scanner in = new Scanner(System.in);
-        System.out.print(msg);
-        String inputString = "";
-        try{
-            inputString=inputString.concat(in.next());
-        }catch (NoSuchElementException e){
-            in.close();
-            Scanner in2 = new Scanner(System.in);
-            inputString=inputString.concat(in2.next());
-            in2.close();
-        }
-        return inputString;
+    public StdioNode stdin(ParseTreeNode stdinNode){
+        StdioNode in = new StdioNode("Input",IoType.INPUT);
+        extractContents(stdinNode, in);
+        return in;
     }
 
-    public void strExpr(ParseTreeNode strExprNode, StringBuilder sb){
+    public void content(ParseTreeNode strExprNode, StdioNode root){
         for(ParseTreeNode expr: strExprNode.getChildren()){
             if(expr.getValue().equals("strterm")){
-                strTerm(expr, sb);
+                strTerm(expr, root);
             }else if(expr.getValue().equals("strterm_x")){
-                strTerm_x(expr, sb);
+                strTerm_x(expr, root);
             }
         }
     }
 
-    public void strTerm(ParseTreeNode strTermNode, StringBuilder sb){
+    public void strTerm(ParseTreeNode strTermNode, StdioNode root){
         if(strTermNode.getValue().equals("strterm")){
-            for(ParseTreeNode term: strTermNode.getChildren()){
-                if(term.getValue().startsWith("STRLIT")){
-                    String escapedString = getEscapedString(term);
-                    sb.append(escapedString, 7, escapedString.length()-1);
-                }else if(term.getValue().equals("stdin")){
-                    sb.append(stdin(term));
+            if(strTermNode.getChildren() != null){
+                for(ParseTreeNode term: strTermNode.getChildren()){
+                    if(term.getValue().startsWith("STRLIT")){
+                        String escapedString = getEscapedString(term);
+                        String escapedSubstring = getEscapedString(term).substring(7,escapedString.length()-1);
+                        System.out.println("add");
+                        root.addChild(new ContentNode("Strlit: " + escapedSubstring,TokenType.STRLIT, escapedSubstring));
+                    }else if(term.getValue().startsWith("IDENT")){
+                        String ident = term.getValue().substring(6, term.getValue().length()-1);
+                        if(!variables.containsKey(ident)){
+                            System.out.println("Variable " + ident + " has not been declared, or is uninitialized.");
+                            System.exit(1);
+                        }
+                        root.addChild(new ContentNode("IDENT: " + ident, TokenType.IDENT, ident));
+                    }else if(term.getValue().equals("stdin")){
+                        if(root.getIoType() == IoType.INPUT){
+                            System.out.println("Nested input statements are not allowed in Argon.");
+                            System.exit(1);
+                        }
+                        root.addChild(stdin(term));
+                    }
                 }
             }
-
         }
     }
 
@@ -536,13 +540,13 @@ public class SyntaxTree {
         return escapedString;
     }
 
-    public void strTerm_x(ParseTreeNode strTerm_xNode, StringBuilder sb){
+    public void strTerm_x(ParseTreeNode strTerm_xNode, StdioNode root){
        if(strTerm_xNode.getChildren() != null){
            for(ParseTreeNode term: strTerm_xNode.getChildren()){
                if(term.getValue().equals("strterm")){
-                   strTerm(term, sb);
+                   strTerm(term, root);
                }else if(term.getValue().equals("strterm_x")){
-                   strTerm_x(term, sb);
+                   strTerm_x(term, root);
                }
            }
        }

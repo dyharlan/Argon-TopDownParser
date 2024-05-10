@@ -1,15 +1,17 @@
 package org.example.AST;
 
 
-public enum PrintType {
+public enum IoType {
     PRINT,
     PRINTLN,
-    PRINTERR;
+    PRINTERR,
+    INPUT;
     public String toString() {
         return switch (this) {
             case PRINT -> "PRINT";
             case PRINTLN -> "PRINTLN";
             case PRINTERR -> "PRINTERR";
+            case INPUT -> "INPUT";
         };
     }
 }

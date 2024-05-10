@@ -4,6 +4,7 @@ import org.example.AST.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 
 public class Interpreter {
     //add tables for declared stuff
@@ -16,16 +17,49 @@ public class Interpreter {
             for(ASTNode statement: root.getChildren()){
                 //laging nahuhuli stderr sa java??
                 switch (statement){
-                    case PrintNode p: {
-                        if(p.getPrintType() == PrintType.PRINT){
-                            //System.out.println("PRINT");
-                            System.out.print(p);
-                        }else if(p.getPrintType() == PrintType.PRINTLN){
-                            //System.out.println("PRINTLN");
-                            System.out.println(p);
-                        }else if(p.getPrintType() == PrintType.PRINTERR){
-                            //System.out.println("PRINTERR");
-                            System.err.println(p);
+                    case StdioNode p: {
+                        StringBuilder sb = new StringBuilder();
+                        for(ASTNode child: p.getChildren()){
+                            if(child instanceof ContentNode content){
+                                if(content.getContentType() == TokenType.STRLIT){
+                                    sb.append(content.getContent());
+                                    continue;
+                                }
+                                if(content.getContentType() == TokenType.IDENT){
+                                    sb.append(variables.get(content.getContent()).getValue());
+                                    continue;
+                                }
+                            }
+                            if(child instanceof StdioNode){
+                                StdioNode stdio = (StdioNode) child;
+                                if(stdio.getIoType() == IoType.INPUT){
+                                    StringBuilder sb2 = new StringBuilder();
+                                    if(stdio.getChildren() != null){
+                                        for(ASTNode innerChild: stdio.getChildren()) {
+                                            if (innerChild instanceof ContentNode content) {
+                                                if (content.getContentType() == TokenType.STRLIT) {
+                                                    sb2.append(content.getContent());
+                                                    continue;
+                                                }
+                                                if(content.getContentType() == TokenType.IDENT){
+                                                    sb.append(variables.get(content.getContent()).getValue());
+                                                }
+                                            }
+                                        }
+                                        Scanner input = new Scanner(System.in);
+                                        System.out.print(sb2);
+                                        sb.append(input.nextLine());
+                                        input.close();
+                                    }
+                                }
+                            }
+                        }
+                        if(p.getIoType() == IoType.PRINT){
+                            System.out.print(sb);
+                        }else if(p.getIoType() == IoType.PRINTLN){
+                            System.out.println(sb);
+                        }else if(p.getIoType() == IoType.PRINTERR){
+                            System.err.println(sb);
                         }
                     }
                     break;
@@ -84,7 +118,7 @@ public class Interpreter {
         }
         if(node.getType().equals("Long")){
             System.out.println("Mole64 Value: " + node.getValue() + " cannot be assigned to a Mole32 variable.");
-            System.exit(0);
+            System.exit(1);
         }
         if(node.getType().equals("String")){
             String varName = (String) node.getValue();
@@ -93,9 +127,9 @@ public class Interpreter {
                    return -varVal;
                }
                return varVal;
-            }else if(variables.get(varName).getValue() instanceof Long varVal){
+            }else if(variables.get(varName).getValue() instanceof Long){
                 System.out.println("The value of " + varName + " cannot be assigned to a Mole32 variable as it contains contains a Mole64 value.");
-                System.exit(0);
+                System.exit(1);
             }
 
         }
