@@ -1,4 +1,4 @@
-reactive mole32 x = 1+2+3+4+5;
+reactive mole32 x = 2-9-1;
 print(x);
 //filter(x < 32) {
 //print("x is less than 32!");

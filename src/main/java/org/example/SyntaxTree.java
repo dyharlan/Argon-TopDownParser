@@ -160,11 +160,13 @@ public class SyntaxTree {
 
     public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode, TokenType width){
         ArithmeticNode<TokenType> termNode = null;
-        ArithmeticNode rightNode;
-        Collections.reverse(numOperNode.getChildren());
+        ArithmeticNode rightNode = null;
+        //Collections.reverse(numOperNode.getChildren());
         for(ParseTreeNode op: numOperNode.getChildren()){
             if(op.getValue().equals("term")){
                 rightNode = term(op, width);
+            }else if(op.getValue().equals("term_x")){
+                termNode = term_x(op,width);
                 if (termNode == null) {
                     // left precedence??
                     parentNode.addChild(rightNode);
@@ -173,8 +175,6 @@ public class SyntaxTree {
                     // left precedence??
                     termNode.addChild(rightNode);
                 }
-            }else if(op.getValue().equals("term_x")){
-                termNode = term_x(op,width);
             }
         }
         parentNode.addChild(termNode);
@@ -182,11 +182,13 @@ public class SyntaxTree {
 
     public ArithmeticNode numoper_inner(ParseTreeNode numOperInnerNode, TokenType width){
         ArithmeticNode<TokenType> termNode = null;
-        ArithmeticNode rightNode;
-        Collections.reverse(numOperInnerNode.getChildren());
+        ArithmeticNode rightNode = null;
+        //Collections.reverse(numOperInnerNode.getChildren());
         for(ParseTreeNode op: numOperInnerNode.getChildren()){
             if(op.getValue().equals("term")){
                 rightNode = term(op, width);
+            }else if(op.getValue().equals("term_x")){
+                termNode = term_x(op,width);
                 if (termNode == null) {
                     // left precedence??
                     return rightNode;
@@ -194,8 +196,6 @@ public class SyntaxTree {
                     // left precedence??
                     termNode.addChild(rightNode);
                 }
-            }else if(op.getValue().equals("term_x")){
-                termNode = term_x(op,width);
             }
         }
         return termNode;
@@ -204,20 +204,19 @@ public class SyntaxTree {
     public ArithmeticNode term(ParseTreeNode termNode, TokenType width){
         //return new ArithmeticNode<String>("term" + x++,width);
         ArithmeticNode<TokenType> factorNode = null;
-        ArithmeticNode rightNode;
-        Collections.reverse(termNode.getChildren());
+        ArithmeticNode rightNode = null;
+        //Collections.reverse(termNode.getChildren());
         for(ParseTreeNode op: termNode.getChildren()){
             if(op.getValue().equals("factor")){
                 rightNode = factor(op, width);
+            }else if(op.getValue().equals("factor_x")){
+                factorNode = factor_x(op,width);
                 // left precedence??
                 if(factorNode == null){
                     return rightNode;
                 }else {
                     factorNode.addChild(rightNode);
                 }
-            }else if(op.getValue().equals("factor_x")){
-                factorNode = factor_x(op,width);
-
             }
         }
         return factorNode;
@@ -226,20 +225,20 @@ public class SyntaxTree {
     public ArithmeticNode factor(ParseTreeNode factorNode, TokenType width){
         //return new ArithmeticNode<String>("factor" + x++,width);
         ArithmeticNode<TokenType> exponentNode  = null;
-        ArithmeticNode rightNode;
-        Collections.reverse(factorNode.getChildren());
+        ArithmeticNode rightNode = null;
+        //Collections.reverse(factorNode.getChildren());
         for(ParseTreeNode op: factorNode.getChildren()){
             if(op.getValue().equals("exponent")){
                 rightNode = exponent(op, width);
+
+            }else if(op.getValue().equals("exponent_x")){
+                exponentNode = exponent_x(op,width);
                 // left precedence??
                 if(exponentNode == null){
                     return rightNode;
                 }else {
                     exponentNode.addChild(rightNode);
                 }
-            }else if(op.getValue().equals("exponent_x")){
-                exponentNode = exponent_x(op,width);
-
             }
         }
         return exponentNode;
@@ -253,6 +252,7 @@ public class SyntaxTree {
         if(children.get(0).getValue().equals("SUB")){
             if(children.get(1).getValue().equals("num_final")){
                 ArithmeticNode finalNode = num_final(children.get(1),width);
+                System.out.println("dfklgklfgdfklg");
                 finalNode.setNegative(true);
                 return finalNode;
             }
@@ -264,7 +264,6 @@ public class SyntaxTree {
 
     public ArithmeticNode num_final(ParseTreeNode finalNode, TokenType width){
         for(ParseTreeNode type: finalNode.getChildren()){
-            System.out.println("type: " + type.getValue());
             if(type.getValue().equals("numexpr")){
                 if(type.getChildren().getFirst().getValue().startsWith("NUMLIT")){
                     String literal = type.getChildren().getFirst().getValue().substring(7, type.getChildren().getFirst().getValue().length()-1);
@@ -328,13 +327,18 @@ public class SyntaxTree {
         ArithmeticNode<TokenType> subroot = null;
         ArithmeticNode rightNode = null;
         ArithmeticNode<TokenType> r = null;
-        Collections.reverse(exponentNode.getChildren());
+        //Collections.reverse(exponentNode.getChildren());
         for(ParseTreeNode op: exponentNode.getChildren()){
             switch (op.getValue()) {
                 case "EXP" -> {
                     TokenType operator = TokenType.EXP;
                     subroot = new ArithmeticNode<>(op.getValue() , width);
                     subroot.setValue(operator);
+                }
+                case "exponent" ->
+                        rightNode = exponent(op, width);
+                case "exponent_x" ->{
+                    r = exponent_x(op, width);
                     if (r == null) {
                         // left precedence??
                         subroot.addChild(rightNode);
@@ -346,10 +350,7 @@ public class SyntaxTree {
                         return subroot;
                     }
                 }
-                case "exponent" ->
-                        rightNode = exponent(op, width);
-                case "exponent_x" ->
-                        r = exponent_x(op, width);
+
             }
         }
         return subroot;
@@ -359,7 +360,7 @@ public class SyntaxTree {
         ArithmeticNode<TokenType> subroot = null;
         ArithmeticNode rightNode = null;
         ArithmeticNode<TokenType> r = null;
-        Collections.reverse(factorNode.getChildren());
+        //Collections.reverse(factorNode.getChildren());
         for(ParseTreeNode op: factorNode.getChildren()){
             switch (op.getValue()) {
                 case "MUL", "DIV" -> {
@@ -374,6 +375,12 @@ public class SyntaxTree {
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);
                     subroot.setValue(operator);
+
+                }
+                case "factor" ->
+                    rightNode = factor(op, width);
+                case "factor_x" ->{
+                    r = factor_x(op, width);
                     if (r == null) {
                         // left precedence??
                         subroot.addChild(rightNode);
@@ -385,10 +392,6 @@ public class SyntaxTree {
                         return subroot;
                     }
                 }
-                case "factor" ->
-                    rightNode = factor(op, width);
-                case "factor_x" ->
-                    r = factor_x(op, width);
             }
         }
         return subroot;
@@ -400,7 +403,7 @@ public class SyntaxTree {
         ArithmeticNode<TokenType> subroot = null;
         ArithmeticNode rightNode = null;
         ArithmeticNode<TokenType> r = null;
-        Collections.reverse(termNode.getChildren());
+        //Collections.reverse(termNode.getChildren());
         for(ParseTreeNode op: termNode.getChildren()){
             switch (op.getValue()) {
                 case "ADD", "SUB" -> {
@@ -415,6 +418,12 @@ public class SyntaxTree {
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);
                     subroot.setValue(operator);
+
+                }
+                case "term" ->
+                    rightNode = term(op, width);
+                case "term_x" ->{
+                    r = term_x(op, width);
                     if (r == null) {
                         // left precedence??
                         subroot.addChild(rightNode);
@@ -426,10 +435,7 @@ public class SyntaxTree {
                         return subroot;
                     }
                 }
-                case "term" ->
-                    rightNode = term(op, width);
-                case "term_x" ->
-                    r = term_x(op, width);
+
             }
         }
         return subroot;

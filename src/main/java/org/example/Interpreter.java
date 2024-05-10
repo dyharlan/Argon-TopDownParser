@@ -141,7 +141,11 @@ public class Interpreter {
             }
             if(op == TokenType.SUB){
                 List<ASTNode> children = node.getChildren();
-                return evaluateInt((ArithmeticNode<?>) children.get(1)) - evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " - " + right);
+                //return evaluateInt((ArithmeticNode<?>) children.get(1)) - evaluateInt((ArithmeticNode<?>) children.get(0));
+                return left - right;
             }
             if(op == TokenType.MUL){
                 List<ASTNode> children = node.getChildren();
