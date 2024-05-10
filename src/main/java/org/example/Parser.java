@@ -432,6 +432,8 @@ public class Parser {
                 default:
                     if(lookahead.startsWith("NUMLIT") || lookahead.startsWith("IDENT")){
                         node.addChild(numoper());
+                    }else {
+                        syntaxError("Missing numerical expressions after =." );
                     }
             }
         } else {
@@ -667,6 +669,8 @@ public class Parser {
                     if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
                         parseTreeNode.addChild(condition());
                         parseTreeNode.addChild(boolderiv_x());
+                    }else{
+                        syntaxError("Invalid expression " + lookahead + " on boolean statement.");
                     }
             }
 

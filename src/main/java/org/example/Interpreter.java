@@ -137,7 +137,10 @@ public class Interpreter {
             TokenType op = (TokenType) node.getValue();
             if(op == TokenType.ADD){
                 List<ASTNode> children = node.getChildren();
-                return evaluateInt((ArithmeticNode<?>) children.get(1)) + evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " + " + right);
+                return left + right;
             }
             if(op == TokenType.SUB){
                 List<ASTNode> children = node.getChildren();
@@ -149,15 +152,24 @@ public class Interpreter {
             }
             if(op == TokenType.MUL){
                 List<ASTNode> children = node.getChildren();
-                return evaluateInt((ArithmeticNode<?>) children.get(1)) * evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " * " + right);
+                return left * right;
             }
             if(op == TokenType.DIV){
                 List<ASTNode> children = node.getChildren();
-                return evaluateInt((ArithmeticNode<?>) children.get(1)) / evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " / " + right);
+                return left / right;
             }
             if(op == TokenType.EXP){
                 List<ASTNode> children = node.getChildren();
-                return (int) Math.pow(evaluateInt((ArithmeticNode<?>) children.get(1)), evaluateInt((ArithmeticNode<?>) children.get(0)));
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " ^ " + right);
+                return (int) Math.pow(left,right);
             }
         }
         throw new ArithmeticException("Invalid Arithmetic Expression");
@@ -197,23 +209,39 @@ public class Interpreter {
             TokenType op = (TokenType) node.getValue();
             if(op == TokenType.ADD){
                 List<ASTNode> children = node.getChildren();
-                return evaluateLong((ArithmeticNode<?>) children.get(1)) + evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long left = evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long right = evaluateLong((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " + " + right);
+                return left + right;
             }
             if(op == TokenType.SUB){
                 List<ASTNode> children = node.getChildren();
-                return evaluateLong((ArithmeticNode<?>) children.get(1)) - evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long left = evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long right = evaluateLong((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " - " + right);
+                //return evaluateInt((ArithmeticNode<?>) children.get(1)) - evaluateInt((ArithmeticNode<?>) children.get(0));
+                return left - right;
             }
             if(op == TokenType.MUL){
                 List<ASTNode> children = node.getChildren();
-                return evaluateLong((ArithmeticNode<?>) children.get(1)) * evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long left = evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long right = evaluateLong((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " * " + right);
+                return left * right;
             }
             if(op == TokenType.DIV){
                 List<ASTNode> children = node.getChildren();
-                return evaluateLong((ArithmeticNode<?>) children.get(1)) / evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long left = evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long right = evaluateLong((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " / " + right);
+                return left / right;
             }
             if(op == TokenType.EXP){
                 List<ASTNode> children = node.getChildren();
-                return (long) Math.pow(evaluateLong((ArithmeticNode<?>) children.get(1)), evaluateLong((ArithmeticNode<?>) children.get(0)));
+                Long left = evaluateLong((ArithmeticNode<?>) children.get(0));
+                Long right = evaluateLong((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " ^ " + right);
+                return (long) Math.pow(left,right);
             }
         }
         throw new ArithmeticException("Invalid Arithmetic Expression");
