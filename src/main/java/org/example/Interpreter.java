@@ -9,6 +9,7 @@ import java.util.Scanner;
 public class Interpreter {
     //add tables for declared stuff
     HashMap<String, NumericalVariable> variables;
+    Scanner input;
     public Interpreter(HashMap<String, NumericalVariable> variables) {
         this.variables = variables;
     }
@@ -46,10 +47,12 @@ public class Interpreter {
                                                 }
                                             }
                                         }
-                                        Scanner input = new Scanner(System.in);
+                                        if(input == null){
+                                            input = new Scanner(System.in);
+                                        }
                                         System.out.print(sb2);
                                         sb.append(input.nextLine());
-                                        input.close();
+                                        //input.close();
                                     }
                                 }
                             }
@@ -70,7 +73,6 @@ public class Interpreter {
                             if(vdNode.getChildren().getFirst() instanceof AssignmentExpressionNode ae){
                                 ArithmeticNode<?> an = (ArithmeticNode<?>) ae.getChildren().getFirst();
                                 var.setValue(evaluateInt(an));
-                                System.out.println("value: "+var.getValue());
                             }else{
                                 throw new RuntimeException("Error: unexpected arithmetic expression");
                             }
@@ -80,7 +82,6 @@ public class Interpreter {
                             if(vdNode.getChildren().getFirst() instanceof AssignmentExpressionNode ae){
                                 ArithmeticNode<?> an = (ArithmeticNode<?>) ae.getChildren().getFirst();
                                 var.setValue(evaluateLong(an));
-                                System.out.println("value: "+var.getValue());
                             }else{
                                 throw new RuntimeException("Error: unexpected arithmetic expression");
                             }
@@ -90,12 +91,48 @@ public class Interpreter {
                     }
                     break;
                     case VarAssignmentNode vaNode: {
-//                        if(variables.get(vdNode.getVarName()).getValue() instanceof Integer && vdNode.getVarMutability() == TokenType.MOLE32){
-//                            NumericalVariable<Integer> var = variables.get(vdNode.getVarName());
-//                            var.setValue();
-//                            int x = 1;
-//                            x+=1;
-//                        }
+                        if(variables.get(vaNode.getVarName()).getType().equals("Integer")){
+                            NumericalVariable<Integer> var = ( NumericalVariable<Integer> ) variables.get(vaNode.getVarName());
+
+                            if(vaNode.getChildren().getFirst() instanceof AssignmentExpressionNode ae){
+                                ArithmeticNode<?> an = (ArithmeticNode<?>) ae.getChildren().getFirst();
+                                if(ae.getVarAssignType() == TokenType.ASSIGN){
+                                    var.setValue(evaluateInt(an));
+                                }else if(ae.getVarAssignType() == TokenType.ADDASSIGN){
+                                    var.setValue(var.getValue() + evaluateInt(an));
+                                }else if(ae.getVarAssignType() == TokenType.SUBASSIGN){
+                                    var.setValue(var.getValue() - evaluateInt(an));
+                                }else if(ae.getVarAssignType() == TokenType.MULASSIGN){
+                                    var.setValue(var.getValue() * evaluateInt(an));
+                                }else if(ae.getVarAssignType() == TokenType.DIVASSIGN){
+                                    var.setValue(var.getValue() / evaluateInt(an));
+                                }else if(ae.getVarAssignType() == TokenType.EXPASSIGN){
+                                    var.setValue((int) Math.pow(var.getValue(), evaluateInt(an)));
+                                }
+                            }else{
+                                throw new RuntimeException("Error: unexpected arithmetic expression");
+                            }
+                        }else if(variables.get(vaNode.getVarName()).getType().equals("Long")){
+                            NumericalVariable<Long> var = ( NumericalVariable<Long> ) variables.get(vaNode.getVarName());
+                            if(vaNode.getChildren().getFirst() instanceof AssignmentExpressionNode ae){
+                                ArithmeticNode<?> an = (ArithmeticNode<?>) ae.getChildren().getFirst();
+                                if(ae.getVarAssignType() == TokenType.ASSIGN){
+                                    var.setValue(evaluateLong(an));
+                                }else if(ae.getVarAssignType() == TokenType.ADDASSIGN){
+                                    var.setValue(var.getValue() + evaluateLong(an));
+                                }else if(ae.getVarAssignType() == TokenType.SUBASSIGN){
+                                    var.setValue(var.getValue() - evaluateLong(an));
+                                }else if(ae.getVarAssignType() == TokenType.MULASSIGN){
+                                    var.setValue(var.getValue() * evaluateLong(an));
+                                }else if(ae.getVarAssignType() == TokenType.DIVASSIGN){
+                                    var.setValue(var.getValue() / evaluateLong(an));
+                                }else if(ae.getVarAssignType() == TokenType.EXPASSIGN){
+                                    var.setValue((long) Math.pow(var.getValue(), evaluateLong(an)));
+                                }
+                            }else{
+                                throw new RuntimeException("Error: unexpected arithmetic expression");
+                            }
+                        }
 
 
                     }
@@ -105,6 +142,9 @@ public class Interpreter {
                 }
 
             }
+        }
+        if(input != null){
+            input.close();
         }
     }
 

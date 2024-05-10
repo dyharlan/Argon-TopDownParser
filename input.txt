@@ -1,6 +1,8 @@
 reactive mole32 y = 546;
 reactive mole64 x = y;
-print(x);
+println(x + input("wow: su"));
+x = 2;
+println(x);
 //filter(x < 32) {
 //print("x is less than 32!");
 //}

@@ -39,6 +39,9 @@ public class NumericalVariable<V> implements Comparable<NumericalVariable<V>>{
     public boolean isMutable() {
         return isMutable;
     }
+    public boolean hasBeenAssigned() {
+        return hasBeenAssigned;
+    }
     @Override
     public int compareTo(NumericalVariable<V> o) {
         return o.getName().compareTo(this.name);

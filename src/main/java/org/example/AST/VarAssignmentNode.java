@@ -4,7 +4,7 @@ package org.example.AST;
 public class VarAssignmentNode extends ASTNode {
     protected String varName;
     public VarAssignmentNode(String varName) {
-        super("VarAssignment");
+        super(varName);
         this.varName = varName;
     }
     public VarAssignmentNode(String expressionType, String varName) {

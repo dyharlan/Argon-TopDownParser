@@ -72,6 +72,42 @@ public class SyntaxTree {
             stdio(childNode, root);
         } else if(childNode.getValue().equals("vardeclare")){
             vardeclare(childNode, root);
+        } else if(childNode.getValue().equals("varassign")){
+            varassign(childNode, root);
+        }
+    }
+
+    public void varassign(ParseTreeNode varAssignNode, StatementsNode root){
+        String id = "";
+        for(ParseTreeNode child: varAssignNode.getChildren()){
+            if(child.getValue().startsWith("IDENT")){
+                id = child.getValue().substring(6, child.getValue().length()-1);
+                System.out.println("id " +id);
+                if(!variables.containsKey(id)){
+                    System.out.println("Variable " + id + " has not been declared.");
+                    System.exit(1);
+                }
+                NumericalVariable v = variables.get(id);
+                if(!v.isMutable() && v.hasBeenAssigned()){
+                    System.out.println("Inert Variable " + id + " already contains a value which cannot be changed.");
+                    System.exit(1);
+                }
+
+            }
+            if(child.getValue().equals("assignment")){
+                if(variables.get(id).getType().equals("Integer")){
+                    VarAssignmentNode vn = new VarAssignmentNode("Variable assignment for: " + id, id);
+                    assignment(child.getChildren().getFirst(),vn,TokenType.MOLE32);
+                    root.addChild(vn);
+                } else if(variables.get(id).getType().equals("Long")){
+                    VarAssignmentNode vn = new VarAssignmentNode("Variable assignment for: " + id, id);
+                    assignment(child,vn,TokenType.MOLE64);
+                    root.addChild(vn);
+                }else{
+                    System.out.println("There was an error parsing the variable assignment statement.");
+                    System.exit(1);
+                }
+            }
         }
     }
 
@@ -119,6 +155,7 @@ public class SyntaxTree {
         }
     }
     public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode, TokenType width){
+        System.out.println(assignmentParseTreeNode.getChildren().getFirst().getValue());
         assert assignmentParseTreeNode.getChildren().getFirst().getValue().equals("assign_oper"):"Invalid index to check for assign oper!!!";
         String varAssignType = assignmentParseTreeNode.getChildren().getFirst().getChildren().getFirst().getValue();
         System.out.println("var assign type: "+varAssignType);
