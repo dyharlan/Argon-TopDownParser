@@ -1,0 +1,9 @@
+reactive mole32 y = 546;
+reactive mole64 x = y;
+x += 26767;
+//println(input("enter input: ") + x + input("enter another: ") );
+
+println(x);
+//filter(x < 32) {
+//print("x is less than 32!");
+//}
