@@ -76,7 +76,8 @@ public class Interpreter {
                                 ArithmeticNode<?> an = (ArithmeticNode<?>) ae.getChildren().getFirst();
                                 var.setValue(evaluateInt(an));
                             }else{
-                                throw new RuntimeException("Error: unexpected arithmetic expression");
+                                System.out.println("LanguageError: unexpected arithmetic expression");
+                                System.exit(1);
                             }
                         }else if(variables.get(vdNode.getVarName()).getType().equals("Long")){
                             NumericalVariable<Long> var = ( NumericalVariable<Long> ) variables.get(vdNode.getVarName());
@@ -85,7 +86,8 @@ public class Interpreter {
                                 ArithmeticNode<?> an = (ArithmeticNode<?>) ae.getChildren().getFirst();
                                 var.setValue(evaluateLong(an));
                             }else{
-                                throw new RuntimeException("Error: unexpected arithmetic expression");
+                                System.out.println("LanguageError: unexpected arithmetic expression");
+                                System.exit(1);
                             }
                         }
 
@@ -112,7 +114,8 @@ public class Interpreter {
                                     var.setValue((int) Math.pow(var.getValue(), evaluateInt(an)));
                                 }
                             }else{
-                                throw new RuntimeException("Error: unexpected arithmetic expression");
+                                System.out.println("LanguageError: unexpected arithmetic expression");
+                                System.exit(1);
                             }
                         }else if(variables.get(vaNode.getVarName()).getType().equals("Long")){
                             NumericalVariable<Long> var = ( NumericalVariable<Long> ) variables.get(vaNode.getVarName());
@@ -132,7 +135,8 @@ public class Interpreter {
                                     var.setValue((long) Math.pow(var.getValue(), evaluateLong(an)));
                                 }
                             }else{
-                                throw new RuntimeException("Error: unexpected arithmetic expression");
+                                System.out.println("LanguageError: unexpected arithmetic expression");
+                                System.exit(1);
                             }
                         }
 
@@ -159,7 +163,8 @@ public class Interpreter {
 //                        }
 //                    }
                     default:
-                        throw new IllegalStateException("Unexpected type of statement: " + statement.getExpressionType());
+                        System.out.println("LanguageError: unexpected arithmetic expression");
+                        System.exit(1);
                 }
 
             }
@@ -178,7 +183,7 @@ public class Interpreter {
             return lit;
         }
         if(node.getType().equals("Long")){
-            System.out.println("Mole64 Value: " + node.getValue() + " cannot be assigned to a Mole32 variable.");
+            System.out.println("TypeError: Mole64 Value: " + node.getValue() + " cannot be assigned to a Mole32 variable.");
             System.exit(1);
         }
         if(node.getType().equals("String")){
@@ -189,7 +194,7 @@ public class Interpreter {
                }
                return varVal;
             }else if(variables.get(varName).getValue() instanceof Long){
-                System.out.println("The value of " + varName + " cannot be assigned to a Mole32 variable as it contains contains a Mole64 value.");
+                System.out.println("TypeError: The value of " + varName + " cannot be assigned to a Mole32 variable as it contains contains a Mole64 value.");
                 System.exit(1);
             }
 
@@ -233,7 +238,9 @@ public class Interpreter {
                 return (int) Math.pow(left,right);
             }
         }
-        throw new ArithmeticException("Invalid Arithmetic Expression");
+        System.out.println("LanguageError: Invalid Arithmetic Expression");
+        System.exit(1);
+        return null;
     }
 
     public Long evaluateLong(ArithmeticNode<?> node){
@@ -305,7 +312,9 @@ public class Interpreter {
                 return (long) Math.pow(left,right);
             }
         }
-        throw new ArithmeticException("Invalid Arithmetic Expression");
+        System.out.println("LanguageError: Invalid Arithmetic Expression");
+        System.exit(1);
+        return null;
     }
 
     public boolean evaluateBoolean(BooleanNode<?> node){
