@@ -867,7 +867,7 @@ public class Parser {
                     if (Objects.equals(nextToken, "IS")) {
                         parseTreeNode.addChild(bool_operand());
                         parseTreeNode.addChild(eq_rel());
-                        parseTreeNode.addChild(condition());
+                        parseTreeNode.addChild(boolderiv());//parseTreeNode.addChild(condition());
                     } else if (Objects.equals(nextToken, "OR")) {
                         parseTreeNode.addChild(bool_operand());
                         consume("OR", parseTreeNode);
@@ -887,7 +887,7 @@ public class Parser {
                         nextToken.startsWith("IDENT") ||
                         nextToken.startsWith("NUMLIT")) {
                         consume("OPENPAR", parseTreeNode);
-                        parseTreeNode.addChild(condition());
+                        parseTreeNode.addChild(boolderiv());//parseTreeNode.addChild(condition());
                         consume("CLOSEPAR", parseTreeNode);
                     } else {
                         parseTreeNode.addChild(numoper());
