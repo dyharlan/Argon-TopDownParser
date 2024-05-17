@@ -19,7 +19,7 @@ public class Main {
             in = new File(args[0]);
         }
         if(!in.exists()){
-            System.out.println("Input file not found");
+            System.out.println("Input file not found. Arguments: Argon.jar [input file]");
             System.exit(1);
         }
         ArrayList<String> inputList = new ArrayList<>();
