@@ -137,6 +137,25 @@ public class Interpreter {
 
                     }
                     break;
+                    case LoopNode loopNode: {
+                        if (loopNode.getLoopType() == LoopType.DISTILL) {
+                            do {
+                                interpret((StatementsNode) (loopNode.getChildren().get(1)));
+                            } while ((evaluateBoolean((BooleanNode<?>) loopNode.getChildren().get(0))));
+                        } else if (loopNode.getLoopType() == LoopType.FERMENT) {
+                            while (evaluateBoolean((BooleanNode<?>) loopNode.getChildren().get(0))) {
+                                interpret((StatementsNode) (loopNode.getChildren().get(1)));
+                            }
+                        }
+                    }
+                    break;
+//                    case BooleanNode booleanNode: {
+//                        //BooleanValue val = new BooleanValue(false);
+//                        if (booleanNode.getChildren().getFirst() instanceof AssignmentExpressionNode ae){ //not sure about this line
+//                            BooleanNode an = (BooleanNode) ae.getChildren().getFirst();
+//                            val.setValue(evaluateBoolean(an));
+//                        }
+//                    }
                     default:
                         throw new IllegalStateException("Unexpected type of statement: " + statement.getExpressionType());
                 }
@@ -285,5 +304,87 @@ public class Interpreter {
             }
         }
         throw new ArithmeticException("Invalid Arithmetic Expression");
+    }
+
+    public boolean evaluateBoolean(BooleanNode<?> node){
+        if(node.getType().equals("True") || node.getType().equals("False")) {
+            Boolean bool = (Boolean) node.getValue();
+            return bool;
+        }
+//        if (node.getType().equals("String")) {
+//            String varName = (String) node.getValue();
+//            if(variables.get(varName).getValue() instanceof Boolean varVal){
+//                if(node.isInverted()){
+//                    return (long) -varVal;
+//                }
+//                return (long) varVal;
+//            }
+//        }
+        if (node.getType().equals("TokenType")) {
+            TokenType op = (TokenType) node.getValue();
+            if (op == TokenType.AND) {
+                List<ASTNode> children = node.getChildren();
+                boolean left = evaluateBoolean((BooleanNode<?>) children.get(0));
+                boolean right = evaluateBoolean((BooleanNode<?>) children.get(1));
+                System.out.println(left + "&&" + right);
+                //return evaluateInt((ArithmeticNode<?>) children.get(1)) - evaluateInt((ArithmeticNode<?>) children.get(0));
+                return left && right;
+            } else if (op == TokenType.OR) {
+                List<ASTNode> children = node.getChildren();
+                boolean left = evaluateBoolean((BooleanNode<?>) children.get(0));
+                boolean right = evaluateBoolean((BooleanNode<?>) children.get(1));
+                System.out.println(left + "||" + right);
+                return left || right;
+            } else if (op == TokenType.INVERT) {
+                List<ASTNode> children = node.getChildren();
+                boolean left = evaluateBoolean((BooleanNode<?>) children.get(0));
+                System.out.println("!" + left);
+                return !left;
+            } else if (op == TokenType.NOT) {
+                List<ASTNode> children = node.getChildren();
+                boolean left = evaluateBoolean((BooleanNode<?>) children.get(0));
+                boolean right = evaluateBoolean((BooleanNode<?>) children.get(1));
+                System.out.println(left + ".is..not." + right);
+                return left != right;
+            } else if (op == TokenType.IS) {
+                List<ASTNode> children = node.getChildren();
+                boolean left = evaluateBoolean((BooleanNode<?>) children.get(0));
+                boolean right = evaluateBoolean((BooleanNode<?>) children.get(1));
+                System.out.println(left + ".is." + right);
+                return left == right;
+            } else if (op == TokenType.GT) {
+                List<ASTNode> children = node.getChildren();
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " > " + right);
+                return left > right;
+            } else if (op == TokenType.GTE) {
+                List<ASTNode> children = node.getChildren();
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " >= " + right);
+                return left >= right;
+            } else if (op == TokenType.LT) {
+                List<ASTNode> children = node.getChildren();
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " < " + right);
+                return left < right;
+            } else if (op == TokenType.LTE) {
+                List<ASTNode> children = node.getChildren();
+                Integer left = evaluateInt((ArithmeticNode<?>) children.get(0));
+                Integer right = evaluateInt((ArithmeticNode<?>) children.get(1));
+                System.out.println(left + " <= " + right);
+                return left <= right;
+            }
+            int x = 2;
+            long y = 6L;
+            boolean z = y < x && true == true;
+        }
+        return false;
+    }
+
+    public void evaluateLoop(ASTNode condition) {
+
     }
 }
