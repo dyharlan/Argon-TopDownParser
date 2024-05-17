@@ -30,6 +30,7 @@ public class Parser {
             pos++;
             lookahead = inputList.get(pos);
             parent.addChild(new ParseTreeNode(str));
+            System.out.println(str + " CONSUMED");
         } else {
             throw new RuntimeException("Expected " + str + " but found " + inputList.get(pos));
         }
@@ -69,10 +70,29 @@ public class Parser {
     ParseTreeNode statements_x() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("statements_x");
         if (pos < inputList.size() && !Objects.equals(inputList.get(pos), "EOF")) {
-            parseTreeNode.addChild(statement());
-            parseTreeNode.addChild(statements_x());
-        }else {
+            switch (lookahead) {
+                case "REACTIVE":
+                case "INERT":
+                case "INPUT":
+                case "PRINT":
+                case "PRINTLN":
+                case "PRINTERR":
+                case "FILTER":
+                case "WHEN":
+                case "FERMENT":
+                case "DISTILL":
+                    parseTreeNode.addChild(statement());
+                    parseTreeNode.addChild(statements_x());
+                    break;
+                default:
+                    System.out.println("lookahead at statements_x: " + lookahead);
+                    emptyString(parseTreeNode);
+                    System.out.println("Node emptied");
+            }
+        } else { //end of file is reached
+            System.out.println("lookahead at statements_x: " + lookahead);
             emptyString(parseTreeNode);
+            System.out.println("Node emptied");
         }
         // else ε (do nothing)
         return parseTreeNode;
@@ -97,11 +117,14 @@ public class Parser {
                 case "DISTILL":
                     parseTreeNode.addChild(compound_statement());
                     break;
+                case "CLOSEBR":
+                    break;
                 default:
                     if(lookahead.startsWith("IDENT")){
                         //parseTreeNode.addChild(varassign());
                         parseTreeNode.addChild(simple_statement());
                     } else {
+                        System.out.println("lookahead before syntax error: " + lookahead);
                         syntaxError("Not a valid statement");
                     }
 
@@ -656,23 +679,25 @@ public class Parser {
     ParseTreeNode boolderiv() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("boolderiv");
         if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "SUB":
-                case "OPENPAR": //conflict with openpar
-                case "INVERT":
-                case "TRUE":
-                case "FALSE":
-                    parseTreeNode.addChild(condition());
-                    parseTreeNode.addChild(boolderiv_x());
-                    break;
-                default:
-                    if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
-                        parseTreeNode.addChild(condition());
-                        parseTreeNode.addChild(boolderiv_x());
-                    }else{
-                        syntaxError("Invalid expression " + lookahead + " on boolean statement.");
-                    }
-            }
+            parseTreeNode.addChild(condition());
+            parseTreeNode.addChild(condition_x());
+//            switch (lookahead) {
+//                case "SUB":
+//                case "OPENPAR": //conflict with openpar
+//                case "INVERT":
+//                case "TRUE":
+//                case "FALSE":
+//                    parseTreeNode.addChild(condition());
+//                    parseTreeNode.addChild(boolderiv_x());
+//                    break;
+//                default:
+//                    if(lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")){
+//                        parseTreeNode.addChild(condition());
+//                        parseTreeNode.addChild(boolderiv_x());
+//                    }else{
+//                        syntaxError("Invalid expression " + lookahead + " on boolean statement.");
+//                    }
+//            }
 
         } else {
             syntaxError("End of File Reached");
@@ -680,39 +705,39 @@ public class Parser {
         return parseTreeNode;
     }
 
-    ParseTreeNode boolderiv_x() {
-        ParseTreeNode parseTreeNode = new ParseTreeNode("boolderiv_x");
-        if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "AND":
-                case "OR":
-                    parseTreeNode.addChild(logicop());
-                    parseTreeNode.addChild(condition());
-                    parseTreeNode.addChild(boolderiv_x());
-                    break;
-                default:
-                    emptyString(parseTreeNode);
-                    break;
-            }
-        } else {
-            syntaxError("End of File Reached");
-        }
-        return parseTreeNode;
-    }
+//    ParseTreeNode boolderiv_x() {
+//        ParseTreeNode parseTreeNode = new ParseTreeNode("boolderiv_x");
+//        if (pos < inputList.size()) {
+//            switch (lookahead) {
+//                case "AND":
+//                case "OR":
+//                    parseTreeNode.addChild(logicop());
+//                    parseTreeNode.addChild(condition());
+//                    parseTreeNode.addChild(boolderiv_x());
+//                    break;
+//                default:
+//                    emptyString(parseTreeNode);
+//                    break;
+//            }
+//        } else {
+//            syntaxError("End of File Reached");
+//        }
+//        return parseTreeNode;
+//    }
 
-    ParseTreeNode logicop() { //logic operation
-        ParseTreeNode parseTreeNode = new ParseTreeNode("logicop");
-        if (pos < inputList.size()) {
-            if (lookahead.equals("AND")) {
-                consume("AND", parseTreeNode);
-            } else if (lookahead.equals("OR")) {
-                consume("OR", parseTreeNode);
-            }
-        } else {
-            syntaxError("End of File Reached");
-        }
-        return parseTreeNode;
-    }
+//    ParseTreeNode logicop() { //logic operation
+//        ParseTreeNode parseTreeNode = new ParseTreeNode("logicop");
+//        if (pos < inputList.size()) {
+//            if (lookahead.equals("AND")) {
+//                consume("AND", parseTreeNode);
+//            } else if (lookahead.equals("OR")) {
+//                consume("OR", parseTreeNode);
+//            }
+//        } else {
+//            syntaxError("End of File Reached");
+//        }
+//        return parseTreeNode;
+//    }
 
     /*
     Terminals looked ahead for each derivation of condition:
@@ -730,49 +755,138 @@ public class Parser {
     ParseTreeNode condition() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("condition");
         if (pos < inputList.size()) {
-            switch (lookahead) {
-                //case "NUMLIT":
-                case "SUB":
-                //case "OPENPAR": //conflict with openpar
-                //case "IDENT":
-                    parseTreeNode.addChild(nonbool_rel());
-                    break;
-                case "INVERT":
-                //case "OPENPAR": //conflict with openpar
-                case "TRUE":
-                case "FALSE":
-                    parseTreeNode.addChild(bool_rel());
-                    break;
-                case "OPENPAR": //conflict with openpar
-                    consume("OPENPAR", parseTreeNode);
-                    //bool_rel();
-                    if(pos+1 < inputList.size()){
-                        switch(inputList.get(pos+1)){
-                            //case "NUMLIT":
-                            case "SUB":
-                            //case "IDENT":
-                                parseTreeNode.addChild(nonbool_rel());
-                                break;
-                            case "INVERT":
-                                //case "OPENPAR": //conflict with openpar
-                            case "TRUE":
-                            case "FALSE":
-                                parseTreeNode.addChild(bool_rel());
-                                break;
-                            case "CLOSEPAR":
-                                consume("OPENPAR", parseTreeNode);
-                                break;
+            parseTreeNode.addChild(pair());
+            parseTreeNode.addChild(pair_x());
+//            switch (lookahead) {
+//                //case "NUMLIT":
+//                case "SUB":
+//                //case "OPENPAR": //conflict with openpar
+//                //case "IDENT":
+//                    parseTreeNode.addChild(nonbool_rel());
+//                    break;
+//                case "INVERT":
+//                //case "OPENPAR": //conflict with openpar
+//                case "TRUE":
+//                case "FALSE":
+//                    parseTreeNode.addChild(bool_rel());
+//                    break;
+//                case "OPENPAR": //conflict with openpar
+//                    consume("OPENPAR", parseTreeNode);
+//                    //bool_rel();
+//                    if(pos+1 < inputList.size()){
+//                        switch(inputList.get(pos+1)){
+//                            //case "NUMLIT":
+//                            case "SUB":
+//                            //case "IDENT":
+//                                parseTreeNode.addChild(nonbool_rel());
+//                                break;
+//                            case "INVERT":
+//                                //case "OPENPAR": //conflict with openpar
+//                            case "TRUE":
+//                            case "FALSE":
+//                                parseTreeNode.addChild(bool_rel());
+//                                break;
+//                            case "CLOSEPAR":
+//                                consume("OPENPAR", parseTreeNode);
+//                                break;
+//
+//                        }
+//                    }else{
+//                        syntaxError("End of File Reached");
+//                    }
+//                    break;
+//            }
+//            if(lookahead.startsWith("IDENT") || ((pos+1 < inputList.size()) && (inputList.get(pos+1).startsWith("IDENT")))){
+//                parseTreeNode.addChild(nonbool_rel());
+//            }else if(lookahead.startsWith("NUMLIT") || ((pos+1 < inputList.size()) && (inputList.get(pos+1).startsWith("NUMLIT")))){
+//                parseTreeNode.addChild(nonbool_rel());
+//            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        return parseTreeNode;
+    }
 
-                        }
-                    }else{
-                        syntaxError("End of File Reached");
+    ParseTreeNode condition_x() {
+        ParseTreeNode parseTreeNode = new ParseTreeNode("condition_x");
+        if (pos < inputList.size()) {
+            if (Objects.equals(lookahead, "OR")) {
+                consume("OR", parseTreeNode);
+                parseTreeNode.addChild(condition());
+                parseTreeNode.addChild(condition_x());
+            } else {
+                emptyString(parseTreeNode);
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        return parseTreeNode;
+    }
+
+    ParseTreeNode pair() {
+        ParseTreeNode parseTreeNode = new ParseTreeNode("pair");
+        if (pos < inputList.size()) {
+            if (Objects.equals(lookahead, "INVERT")) {
+                consume("INVERT", parseTreeNode);
+                parseTreeNode.addChild(boolval());
+            } else {
+                parseTreeNode.addChild(boolval());
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        return parseTreeNode;
+    }
+
+    ParseTreeNode pair_x() {
+        ParseTreeNode parseTreeNode = new ParseTreeNode("pair");
+        if (pos < inputList.size()) {
+            if (Objects.equals(lookahead, "AND")) {
+                consume("AND", parseTreeNode);
+                parseTreeNode.addChild(pair());
+                parseTreeNode.addChild(pair_x());
+            } else {
+                emptyString(parseTreeNode);
+            }
+        } else {
+            syntaxError("End of File Reached");
+        }
+        return parseTreeNode;
+    }
+
+    ParseTreeNode boolval() {
+        ParseTreeNode parseTreeNode = new ParseTreeNode("boolval");
+        System.out.println("lookahead: " + lookahead);
+
+        if (pos < inputList.size()) {
+            switch (lookahead) {
+                case "TRUE":
+                    consume("TRUE", parseTreeNode);
+                    break;
+                case "FALSE":
+                    consume("FALSE", parseTreeNode);
+                    break;
+                case "OPENPAR":
+                    String nextToken = inputList.get(pos + 1).trim();
+                    if (Objects.equals(nextToken, "TRUE") ||
+                        Objects.equals(nextToken, "FALSE") ||
+                        Objects.equals(nextToken, "OPENPAR")) {
+                        consume("OPENPAR", parseTreeNode);
+                        parseTreeNode.addChild(condition());
+                        consume("CLOSEPAR", parseTreeNode);
+                    } else {
+                        parseTreeNode.addChild(numoper());
+                        parseTreeNode.addChild(relation());
+                        parseTreeNode.addChild(numoper());
                     }
                     break;
-            }
-            if(lookahead.startsWith("IDENT") || ((pos+1 < inputList.size()) && (inputList.get(pos+1).startsWith("IDENT")))){
-                parseTreeNode.addChild(nonbool_rel());
-            }else if(lookahead.startsWith("NUMLIT") || ((pos+1 < inputList.size()) && (inputList.get(pos+1).startsWith("NUMLIT")))){
-                parseTreeNode.addChild(nonbool_rel());
+                default:
+                    if (lookahead.startsWith("IDENT") || lookahead.startsWith("NUMLIT")) {
+                        parseTreeNode.addChild(numoper());
+                        parseTreeNode.addChild(relation());
+                        parseTreeNode.addChild(numoper());
+                    }
+                    break;
             }
         } else {
             syntaxError("End of File Reached");
@@ -811,22 +925,24 @@ public class Parser {
     */
     ParseTreeNode nonbool_operand() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("nonbool_operand");
-        if (pos < inputList.size()) {
-            if(lookahead.startsWith("IDENT")){
-                consume(lookahead, parseTreeNode);
-            }else if(lookahead.startsWith("NUMLIT")){
-                parseTreeNode.addChild(numoper());
-            }else if(lookahead.equals("OPENPAR")){
-                consume("OPENPAR", parseTreeNode);
-                if((pos+1) < inputList.size()){
-                    if(inputList.get(pos+1).startsWith("NUMLIT")){
-                        parseTreeNode.addChild(numoper());
-                    }else{
-                        parseTreeNode.addChild(nonbool_operand());
-                    }
-                }
-                consume("CLOSEPAR", parseTreeNode);
-            }
+
+//        if (pos < inputList.size()) {
+//            if(lookahead.startsWith("IDENT")){
+//                consume(lookahead, parseTreeNode);
+//            }else if(lookahead.startsWith("NUMLIT")){
+//                parseTreeNode.addChild(numoper());
+//            }else if(lookahead.equals("OPENPAR")){
+//                consume("OPENPAR", parseTreeNode);
+//                if((pos+1) < inputList.size()){
+//                    if(inputList.get(pos+1).startsWith("NUMLIT")){
+//                        parseTreeNode.addChild(numoper());
+//                    }else{
+//                        parseTreeNode.addChild(nonbool_operand());
+//                    }
+//                }
+//                consume("CLOSEPAR", parseTreeNode);
+//            }
+        // ----------------------------------------------
 //            switch (lookahead) {
 //                case "IDENT":
 //                    consume("IDENT", parseTreeNode);
@@ -847,7 +963,10 @@ public class Parser {
 //                    consume("CLOSEPAR", parseTreeNode);
 //                    break;
 //            }
-        } else {
+        if (pos < inputList.size()) {
+            parseTreeNode.addChild(numoper());
+        }
+        else {
             syntaxError("End of File Reached");
         }
         return parseTreeNode;
@@ -879,42 +998,42 @@ public class Parser {
         return parseTreeNode;
     }
 
-    ParseTreeNode bool_expr() {
-        ParseTreeNode parseTreeNode = new ParseTreeNode("bool_expr");
-        if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "INVERT":
-                case "OPENPAR":
-                case "TRUE":
-                case "FALSE":
-                    parseTreeNode.addChild(bool_rel());
-                    parseTreeNode.addChild(expr_right());
-                    break;
-            }
-        } else {
-            syntaxError("End of File Reached");
-        }
-        return parseTreeNode;
-    }
+//    ParseTreeNode bool_expr() {
+//        ParseTreeNode parseTreeNode = new ParseTreeNode("bool_expr");
+//        if (pos < inputList.size()) {
+//            switch (lookahead) {
+//                case "INVERT":
+//                case "OPENPAR":
+//                case "TRUE":
+//                case "FALSE":
+//                    parseTreeNode.addChild(bool_rel());
+//                    parseTreeNode.addChild(expr_right());
+//                    break;
+//            }
+//        } else {
+//            syntaxError("End of File Reached");
+//        }
+//        return parseTreeNode;
+//    }
 
-    ParseTreeNode expr_right() {
-        ParseTreeNode parseTreeNode = new ParseTreeNode("expr_right");
-        if (pos < inputList.size()) {
-            switch (lookahead) {
-                case "IS":
-                    parseTreeNode.addChild(eq_rel());
-                    parseTreeNode.addChild(bool_rel());
-                    break;
-                case "AND":
-                case "OR":
-                    parseTreeNode.addChild(logicop());
-                    parseTreeNode.addChild(bool_rel());
-            }
-        } else {
-            syntaxError("End of File Reached");
-        }
-        return parseTreeNode;
-    }
+//    ParseTreeNode expr_right() {
+//        ParseTreeNode parseTreeNode = new ParseTreeNode("expr_right");
+//        if (pos < inputList.size()) {
+//            switch (lookahead) {
+//                case "IS":
+//                    parseTreeNode.addChild(eq_rel());
+//                    parseTreeNode.addChild(bool_rel());
+//                    break;
+//                case "AND":
+//                case "OR":
+//                    parseTreeNode.addChild(logicop());
+//                    parseTreeNode.addChild(bool_rel());
+//            }
+//        } else {
+//            syntaxError("End of File Reached");
+//        }
+//        return parseTreeNode;
+//    }
 
     ParseTreeNode bool_operand() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("bool_operand");
@@ -1083,7 +1202,7 @@ public class Parser {
                     break;
                 case "OPENBR":
                     consume("OPENBR", parseTreeNode);
-                    parseTreeNode.addChild(body_x());
+                    parseTreeNode.addChild(statements_x());//parseTreeNode.addChild(body_x());
                     consume("CLOSEBR", parseTreeNode);
                     break;
                 default:
@@ -1319,9 +1438,18 @@ public class Parser {
         ParseTreeNode parseTreeNode = new ParseTreeNode("distill_stmt");
         if (pos < inputList.size()) {
             if (lookahead.equals("DISTILL")) {
-                consume("FUNNEL", parseTreeNode);
+//                consume("FUNNEL", parseTreeNode);
+//                consume("OPENBR", parseTreeNode);
+//                parseTreeNode.addChild(body_x());
+//                consume("CLOSEBR", parseTreeNode);
+//                consume("UNTIL", parseTreeNode);
+//                consume("OPENPAR", parseTreeNode);
+//                parseTreeNode.addChild(boolderiv());
+//                consume("CLOSEPAR", parseTreeNode);
+//                consume("SEMICOLON", parseTreeNode);
+                consume("DISTILL", parseTreeNode);
                 consume("OPENBR", parseTreeNode);
-                parseTreeNode.addChild(body_x());
+                parseTreeNode.addChild(statements_x()); //parseTreeNode.addChild(body_x());
                 consume("CLOSEBR", parseTreeNode);
                 consume("UNTIL", parseTreeNode);
                 consume("OPENPAR", parseTreeNode);
