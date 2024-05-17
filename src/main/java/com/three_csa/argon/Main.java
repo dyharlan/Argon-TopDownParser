@@ -17,8 +17,6 @@ public class Main {
         File in = null;
         if(args.length > 0){
             in = new File(args[0]);
-        }else{
-            in = new File("input.argon");
         }
         if(!in.exists()){
             System.out.println("Input file not found");
