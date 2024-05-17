@@ -839,7 +839,7 @@ public class Parser {
     }
 
     ParseTreeNode pair_x() {
-        ParseTreeNode parseTreeNode = new ParseTreeNode("pair");
+        ParseTreeNode parseTreeNode = new ParseTreeNode("pair_x");
         if (pos < inputList.size()) {
             if (Objects.equals(lookahead, "AND")) {
                 consume("AND", parseTreeNode);
@@ -856,21 +856,36 @@ public class Parser {
 
     ParseTreeNode boolval() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("boolval");
+        String nextToken = inputList.get(pos + 1).trim();
         System.out.println("lookahead: " + lookahead);
+        System.out.println("nextToken: " + nextToken + "\n");
 
         if (pos < inputList.size()) {
             switch (lookahead) {
                 case "TRUE":
-                    consume("TRUE", parseTreeNode);
-                    break;
                 case "FALSE":
-                    consume("FALSE", parseTreeNode);
+                    if (Objects.equals(nextToken, "IS")) {
+                        parseTreeNode.addChild(bool_operand());
+                        parseTreeNode.addChild(eq_rel());
+                        parseTreeNode.addChild(condition());
+                    } else if (Objects.equals(nextToken, "OR")) {
+                        parseTreeNode.addChild(bool_operand());
+                        consume("OR", parseTreeNode);
+                        parseTreeNode.addChild(bool_operand());
+                    } else if (Objects.equals(nextToken, "AND")) {
+                        parseTreeNode.addChild(bool_operand());
+                        consume("AND", parseTreeNode);
+                        parseTreeNode.addChild(bool_operand());
+                    } else {
+                        parseTreeNode.addChild(bool_operand());
+                    }
                     break;
                 case "OPENPAR":
-                    String nextToken = inputList.get(pos + 1).trim();
                     if (Objects.equals(nextToken, "TRUE") ||
                         Objects.equals(nextToken, "FALSE") ||
-                        Objects.equals(nextToken, "OPENPAR")) {
+                        Objects.equals(nextToken, "OPENPAR") ||
+                        nextToken.startsWith("IDENT") ||
+                        nextToken.startsWith("NUMLIT")) {
                         consume("OPENPAR", parseTreeNode);
                         parseTreeNode.addChild(condition());
                         consume("CLOSEPAR", parseTreeNode);
@@ -1038,13 +1053,26 @@ public class Parser {
     ParseTreeNode bool_operand() {
         ParseTreeNode parseTreeNode = new ParseTreeNode("bool_operand");
         if (pos < inputList.size()) {
-            if(lookahead.startsWith("IDENT")){
-                consume(lookahead, parseTreeNode);
-            }else if(lookahead.equals("OPENPAR")){
-                consume("OPENPAR", parseTreeNode);
-                parseTreeNode.addChild(bool_operand());
-                consume("CLOSEPAR", parseTreeNode);
+            switch (lookahead) {
+                case "TRUE":
+                    consume("TRUE", parseTreeNode);
+                    break;
+                case "FALSE":
+                    consume("FALSE", parseTreeNode);
+                    break;
+                default:
+                    syntaxError("Expected TRUE or FALSE. Found: " + lookahead);
             }
+
+            // --------------------------------- second iteration
+//            if(lookahead.startsWith("IDENT")){
+//                consume(lookahead, parseTreeNode);
+//            }else if(lookahead.equals("OPENPAR")){
+//                consume("OPENPAR", parseTreeNode);
+//                parseTreeNode.addChild(bool_operand());
+//                consume("CLOSEPAR", parseTreeNode);
+//            }
+            // --------------------------------- first iteration
 //            switch (lookahead) {
 //                case "IDENT":
 //                    consume("IDENT", parseTreeNode);
@@ -1087,6 +1115,8 @@ public class Parser {
             if (lookahead.equals("IS")) {
                 consume("IS", parseTreeNode);
                 parseTreeNode.addChild(eq_right());
+            } else {
+                syntaxError("expected IS or IS NOT. Found: " + lookahead);
             }
         } else {
             syntaxError("End of File Reached");
@@ -1336,7 +1366,11 @@ public class Parser {
             if (lookahead.equals("WHEN")) {
                 consume("WHEN", parseTreeNode);
                 consume("OPENPAR", parseTreeNode);
-                consume("IDENT", parseTreeNode);
+                if (lookahead.startsWith("IDENT")) {
+                    consume(lookahead, parseTreeNode); //consume("IDENT", parseTreeNode);
+                } else {
+                    syntaxError("Invalid token found in when");
+                }
                 consume("CLOSEPAR", parseTreeNode);
                 consume("OPENBR", parseTreeNode);
                 parseTreeNode.addChild(case_x());
