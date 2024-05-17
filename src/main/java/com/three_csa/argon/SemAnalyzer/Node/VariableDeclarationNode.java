@@ -8,18 +8,18 @@ public class VariableDeclarationNode extends VarAssignmentNode implements Compar
     TokenType varType;
 
     public VariableDeclarationNode(TokenType varMutability, TokenType varType, String varName) {
-        super("Variable Declaration");
+        super("Variable Declaration for: " + varName);
         if(varMutability == TokenType.REACTIVE || varMutability == TokenType.INERT){
             this.varMutability = varMutability;
         } else {
-            System.err.println("Variable Mutability not recognized");
+            System.out.println("LanguageError: Variable Mutability not recognized");
             System.exit(1);
         }
 
         if(varType == TokenType.MOLE32 || varType == TokenType.MOLE64){
             this.varType = varType;
         } else {
-            System.err.println("Variable Size not recognized");
+            System.out.println("LanguageError: Variable Size not recognized");
             System.exit(1);
         }
         this.varName = varName;

@@ -35,10 +35,10 @@ public class ArithmeticNode<T> extends ASTNode {
         switch (value){
             case Integer i:
                 if(width == TokenType.MOLE32 && i.compareTo(Integer.MAX_VALUE) >= 1){
-                    System.out.println("Value too big to fit inside the destination.");
+                    System.out.println("TypeError: Value too big to fit inside the destination.");
                     System.exit(1);
                 }else if (width == TokenType.MOLE32 && i.compareTo(Integer.MIN_VALUE) <= -1) {
-                    System.out.println("Value too small to fit inside the destination.");
+                    System.out.println("TypeError: Value too small to fit inside the destination.");
                     System.exit(1);
                 }else{
                     this.value = value;
@@ -46,10 +46,10 @@ public class ArithmeticNode<T> extends ASTNode {
             break;
             case Long l:
                 if(width == TokenType.MOLE64 && l.compareTo(Long.MAX_VALUE) >= 1){
-                    System.out.println("Value too big to fit inside the destination: " + value);
+                    System.out.println("TypeError: Value too big to fit inside the destination: " + value);
                     System.exit(1);
                 } else if (width == TokenType.MOLE32 && l.compareTo(Long.MIN_VALUE) <= -1) {
-                    System.out.println("Value too small to fit inside the destination: " + value);
+                    System.out.println("TypeError: Value too small to fit inside the destination: " + value);
                     System.exit(1);
                 }else{
                     this.value = value;
@@ -60,7 +60,7 @@ public class ArithmeticNode<T> extends ASTNode {
                 Matcher matcher = pattern.matcher(ident);
                 boolean matchFound = matcher.find();
                 if(!matchFound) {
-                    System.out.println("Invalid identifier: " + value);
+                    System.out.println("VarError: Invalid identifier: " + value);
                     System.exit(1);
                 }else {
                     this.value = value;
@@ -71,11 +71,11 @@ public class ArithmeticNode<T> extends ASTNode {
                     if(t.equals(TokenType.ADD) || t.equals(TokenType.SUB) || t.equals(TokenType.MUL) || t.equals(TokenType.DIV) || t.equals(TokenType.EXP)){
                         this.value = value;
                     }else{
-                        System.out.println("Illegal arithmetic expression: "+expressionType);
+                        System.out.println("LanguageError: Illegal arithmetic expression: "+expressionType);
                         System.exit(1);
                     }
                 }else{
-                    System.out.println("Unexpected value: " + value);
+                    System.out.println("LanguageError: Unexpected value: " + value);
                     System.exit(1);
                 }
 

@@ -86,14 +86,13 @@ public class SyntaxTree {
         for(ParseTreeNode child: varAssignNode.getChildren()){
             if(child.getValue().startsWith("IDENT")){
                 id = child.getValue().substring(6, child.getValue().length()-1);
-                System.out.println("id " +id);
                 if(!variables.containsKey(id)){
-                    System.out.println("Variable " + id + " has not been declared.");
+                    System.out.println("TypeError: Variable " + id + " has not been declared.");
                     System.exit(1);
                 }
                 NumericalVariable v = variables.get(id);
                 if(!v.isMutable() && v.hasBeenAssigned()){
-                    System.out.println("Inert Variable " + id + " already contains a value which cannot be changed.");
+                    System.out.println("MutabilityError: Inert Variable " + id + " already contains a value which cannot be changed.");
                     System.exit(1);
                 }
 
@@ -108,7 +107,7 @@ public class SyntaxTree {
                     assignment(child,vn,TokenType.MOLE64);
                     root.addChild(vn);
                 }else{
-                    System.out.println("There was an error parsing the variable assignment statement.");
+                    System.out.println("LanguageError: There was an error parsing the variable assignment statement.");
                     System.exit(1);
                 }
             }
@@ -139,11 +138,11 @@ public class SyntaxTree {
             }
 
             if(varAttribs.get(3).getChildren() == null){
-                System.out.println("\n\nUninitialized Variables are not allowed in argon.");
+                System.out.println("\n\nVarError: Uninitialized Variables are not allowed in argon.");
                 System.exit(1);
             }
             if(variables.containsKey(varName)){
-                System.out.println("Variable " + varName + " has already been declared.");
+                System.out.println("VarError: Variable " + varName + " has already been declared.");
                 System.exit(1);
             }
             assignment(varAttribs.get(3),variableDeclarationNode,numType);
@@ -159,15 +158,15 @@ public class SyntaxTree {
         }
     }
     public void assignment(ParseTreeNode assignmentParseTreeNode, VarAssignmentNode variableDeclarationNode, TokenType width){
-        System.out.println(assignmentParseTreeNode.getChildren().getFirst().getValue());
+       // System.out.println(assignmentParseTreeNode.getChildren().getFirst().getValue());
         assert assignmentParseTreeNode.getChildren().getFirst().getValue().equals("assign_oper"):"Invalid index to check for assign oper!!!";
         String varAssignType = assignmentParseTreeNode.getChildren().getFirst().getChildren().getFirst().getValue();
-        System.out.println("var assign type: "+varAssignType);
+       // System.out.println("var assign type: "+varAssignType);
         AssignmentExpressionNode assignmentExpressionNode = null;
         if(varAssignType.equals("ASSIGN")){
             assignmentExpressionNode = new AssignmentExpressionNode(TokenType.ASSIGN);
         }else if(variableDeclarationNode instanceof VariableDeclarationNode){
-            System.out.println("Compount assignemnt operations are not allowed on variable declarations.");
+            System.out.println("VarError: Compound assignemnt operations are not allowed on variable declarations.");
             System.exit(1);
         }else {
             switch (varAssignType) {
@@ -177,7 +176,7 @@ public class SyntaxTree {
                 case "MULASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.MULASSIGN);
                 case "DIVASSIGN" -> assignmentExpressionNode = new AssignmentExpressionNode(TokenType.DIVASSIGN);
                 default -> {
-                    System.out.println("\n\nInvalid Assignment Operation.");
+                    System.out.println("\n\nLanguageError: Invalid Assignment Operation.");
                     System.exit(1);
                 }
             }
@@ -195,7 +194,7 @@ public class SyntaxTree {
         if(assignAfterNode.getChildren() != null){
             numoper(assignAfterNode.getChildren().getFirst(), parentNode, width);
         }else{
-            System.out.println("Missing expression after = on variable declaration.");
+            System.out.println("SyntaxError: Missing expression after = on variable declaration.");
             System.exit(1);
         }
     }
@@ -303,7 +302,7 @@ public class SyntaxTree {
                             }
 
                         }catch (NumberFormatException nfe){
-                            System.out.println("The value " + literal.toLowerCase() + " is not valid for " + width);
+                            System.out.println("TypeError: The value " + literal.toLowerCase() + " is not valid for " + width);
 
                             System.exit(1);
                         }
@@ -321,7 +320,7 @@ public class SyntaxTree {
                             }
 
                         }catch (NumberFormatException nfe){
-                            System.out.println("The value " + literal.toLowerCase() + " is not valid for " + width);
+                            System.out.println("TypeError: The value " + literal.toLowerCase() + " is not valid for " + width);
                             System.exit(1);
                         }
                         return longLit;
@@ -331,7 +330,7 @@ public class SyntaxTree {
                 String varName = type.getValue().substring(6, type.getValue().length()-1);
                 ArithmeticNode<String> varNode = new ArithmeticNode<>("Numerical Variable "+ x++ +": " + varName, TokenType.IDENT);
                 if(!variables.containsKey(varName)){
-                    System.out.println("Variable " + varName + " has not been declared, or is uninitialized.");
+                    System.out.println("VarError: Variable " + varName + " has not been declared, or is uninitialized.");
                     System.exit(1);
                 }
                 varNode.setValue(varName);
@@ -395,7 +394,7 @@ public class SyntaxTree {
                     } else if (op.getValue().equals("DIV")) {
                         operator = TokenType.DIV;
                     } else {
-                        System.out.println("Invalid operator for factor_x!!!");
+                        System.out.println("LanguageError: Invalid operator for factor_x!!!");
                         System.exit(1);
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);
@@ -442,7 +441,7 @@ public class SyntaxTree {
                     } else if (op.getValue().equals("SUB")) {
                         operator = TokenType.SUB;
                     } else {
-                        System.out.println("Invalid operator for term!!!");
+                        System.out.println("LanguageError: Invalid operator for term!!!");
                         System.exit(1);
                     }
                     subroot = new ArithmeticNode<>(op.getValue() , width);
@@ -544,18 +543,18 @@ public class SyntaxTree {
                     if(term.getValue().startsWith("STRLIT")){
                         String escapedString = getEscapedString(term);
                         String escapedSubstring = getEscapedString(term).substring(7,escapedString.length()-1);
-                        System.out.println("add");
+                        //System.out.println("add");
                         root.addChild(new ContentNode("Strlit: " + escapedSubstring,TokenType.STRLIT, escapedSubstring));
                     }else if(term.getValue().startsWith("IDENT")){
                         String ident = term.getValue().substring(6, term.getValue().length()-1);
                         if(!variables.containsKey(ident)){
-                            System.out.println("Variable " + ident + " has not been declared, or is uninitialized.");
+                            System.out.println("VarError: Variable " + ident + " has not been declared, or is uninitialized.");
                             System.exit(1);
                         }
                         root.addChild(new ContentNode("IDENT: " + ident, TokenType.IDENT, ident));
                     }else if(term.getValue().equals("stdin")){
                         if(root.getIoType() == IoType.INPUT){
-                            System.out.println("Nested input statements are not allowed in Argon.");
+                            System.out.println("LanguageError: Nested input statements are not allowed in Argon.");
                             System.exit(1);
                         }
                         root.addChild(stdin(term));

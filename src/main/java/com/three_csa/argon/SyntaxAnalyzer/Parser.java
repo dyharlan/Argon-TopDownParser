@@ -19,7 +19,7 @@ public class Parser {
         if (Objects.equals(lookahead, "EOF")) {
             System.out.println("Accepted");
         } else {
-            System.out.println("Error during syntax analysis: " + lookahead + " was found unexpectedly.");
+            System.out.println("SyntaxError: Error during syntax analysis: " + lookahead + " was found unexpectedly.");
             System.exit(1);
         }
         System.out.println("lookahead: "+lookahead);
@@ -44,13 +44,13 @@ public class Parser {
     void syntaxError(String message) {
         //System.out.println("Syntax Error: " + message);
         //System.exit(0);
-        throw new RuntimeException("Syntax Error: " + message);
+        throw new RuntimeException("SyntaxError: " + message);
     }
 
     void syntaxError() {
         //System.out.println("Syntax Error");
         //System.exit(0);
-        throw new RuntimeException("Syntax Error: ");
+        throw new RuntimeException("SyntaxError: ");
     }
 
     ParseTreeNode program() {
@@ -132,13 +132,13 @@ public class Parser {
                         parseTreeNode.addChild(simple_statement());
                     } else {
                         System.out.println("lookahead before syntax error: " + lookahead);
-                        syntaxError("Not a valid statement");
+                        syntaxError("SyntaxError: Not a valid statement");
                     }
 
                     break;
             }
         } else {
-            System.out.println("Syntax Error: End of File Reached");
+            System.out.println("SyntaxError: End of File Reached");
             System.exit(1);
         }
         return parseTreeNode;
@@ -188,7 +188,7 @@ public class Parser {
                     parseTreeNode.addChild(stderr());
                     break;
                 default:
-                    syntaxError();
+                    syntaxError("SyntaxError: Invalid expression: " + lookahead);
                     break;
             }
         } else {
@@ -396,7 +396,7 @@ public class Parser {
                     consume("PRINTLN", parseTreeNode);
                     break;
                 default:
-                    syntaxError();
+                    syntaxError("SyntaxError: Invalid Expression: " + lookahead);
             }
         } else {
             syntaxError("End of File Reached");
@@ -463,7 +463,7 @@ public class Parser {
                     if(lookahead.startsWith("NUMLIT") || lookahead.startsWith("IDENT")){
                         node.addChild(numoper());
                     }else {
-                        syntaxError("Missing numerical expressions after =." );
+                        syntaxError("SyntaxError: Missing numerical expressions after =." );
                     }
             }
         } else {
@@ -649,7 +649,7 @@ public class Parser {
                 parseTreeNode.addChild(numoper());
                 consume("CLOSEPAR", parseTreeNode);
             }else {
-                syntaxError();
+                syntaxError("SyntaxError: Invalid Expression: " + lookahead);
             }
 //            switch (lookahead) {
 //                case "NUMLIT":
@@ -1246,7 +1246,7 @@ public class Parser {
                     if(lookahead.startsWith("IDENT")){
                         parseTreeNode.addChild(varassign());
                     }else {
-                        syntaxError();
+                        syntaxError("SyntaxError: Invalid Expression: " + lookahead);
                     }
                     break;
             }
