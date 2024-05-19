@@ -5,10 +5,14 @@ import java.util.List;
 public class LoopNode extends ASTNode {
     LoopType loopType;
     List<ASTNode> content;
-    public LoopNode(LoopType loopType, List<ASTNode> content) {
-        super("Loop: " + loopType.toString());
+//    public LoopNode(LoopType loopType, List<ASTNode> content) {
+//        super("Loop: " + loopType.toString());
+//        this.loopType = loopType;
+//        this.content = content;
+//    }
+    public LoopNode(String expressionType, LoopType loopType) {
+        super(expressionType);
         this.loopType = loopType;
-        this.content = content;
     }
 
 //    public String toString() {
