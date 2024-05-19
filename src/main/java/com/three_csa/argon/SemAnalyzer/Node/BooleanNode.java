@@ -9,6 +9,11 @@ public class BooleanNode<T> extends ASTNode {
         super(expressionType);
     }
 
+    public BooleanNode(String expressionType, T value) {
+        super(expressionType);
+        this.value = value;
+    }
+
     public boolean isInverted() {
         return isInverted;
     }
