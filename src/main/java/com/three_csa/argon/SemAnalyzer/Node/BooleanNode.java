@@ -11,6 +11,7 @@ public class BooleanNode<T> extends ASTNode {
 
     public BooleanNode(String expressionType, T value) {
         super(expressionType);
+        setExpressionType(expressionType + value);
         this.value = value;
     }
 

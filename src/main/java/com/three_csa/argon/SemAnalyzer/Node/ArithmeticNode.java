@@ -68,7 +68,7 @@ public class ArithmeticNode<T> extends ASTNode {
                 break;
             default:
                 if(value instanceof TokenType t){
-                    if(t.equals(TokenType.ADD) || t.equals(TokenType.SUB) || t.equals(TokenType.MUL) || t.equals(TokenType.DIV) || t.equals(TokenType.EXP)){
+                    if(t.equals(TokenType.ADD) || t.equals(TokenType.SUB) || t.equals(TokenType.MUL) || t.equals(TokenType.DIV) || t.equals(TokenType.EXP) || t.equals(TokenType.INPUT)){
                         this.value = value;
                     }else{
                         System.out.println("LanguageError: Illegal arithmetic expression: "+expressionType);

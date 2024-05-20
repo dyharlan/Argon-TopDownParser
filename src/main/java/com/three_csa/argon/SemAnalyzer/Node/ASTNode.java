@@ -5,7 +5,7 @@ import java.util.List;
 
 public class ASTNode {
     protected List<ASTNode> children;
-    protected final String expressionType;
+    protected String expressionType;
     public ASTNode(String expressionType) {
         this.expressionType = expressionType;
     }
@@ -46,6 +46,9 @@ public class ASTNode {
 
     public String getExpressionType() {
         return expressionType;
+    }
+    public void setExpressionType(String expressionType) {
+        this.expressionType = expressionType;
     }
 }
 

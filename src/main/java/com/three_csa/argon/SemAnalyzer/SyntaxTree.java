@@ -76,40 +76,60 @@ public class SyntaxTree {
         }
     }
 
-    public void cond_body(ParseTreeNode cond_bodyNode, StatementsNode root){
+    public void cond_body(ParseTreeNode cond_bodyNode, ASTNode root) { //StatementsNode root) {
+        //ASTNode cond_body = new ASTNode("body");
+        //root.addChild(cond_body);
+        System.out.println("Entering cond_body");
+        StatementsNode body = new StatementsNode("Body");
         if(cond_bodyNode.getChildren() != null){
             for(ParseTreeNode child : cond_bodyNode.getChildren()){
-                if(child.getValue().equals("simple_statement")){
-                    simpleStatement(child, root);
-                } else if (child.getValue().equals("cond_body")){
-                    cond_body(child, root);
+                if(child.getValue().equals("simple_statement")) {
+//                    simpleStatement(child, root);
+                    //StatementsNode body = new StatementsNode("Body");
+                    simpleStatement(child, body);
+                    //root.addChild(body);
+//                } else if (child.getValue().equals("cond_body")){
+//                    cond_body(child, root);
+//                }
+                } else if (child.getValue().equals("statements_x")) {
+                    System.out.println("Entering statement_x from cond_body");
+                   // StatementsNode body = new StatementsNode("Body");
+                    //statements_x(child, root);
+                    statements_x(child, body);
+                    //root.addChild(body);
                 }
             }
         }
+        root.addChild(body);
     }
 
     public void compoundStatement(ParseTreeNode compoundStatementNode, StatementsNode root) {
         ParseTreeNode childNode = compoundStatementNode.getChildren().getFirst();
         if (childNode.getValue().equals("cond_stmt")) {
+            //System.out.println("Going to cond_stmt");
+            cond_stmt(childNode, root);
             //put the conditional statement function here
-        } else if (childNode.getValue().equals("distill_stmt") || childNode.getValue().equals("ferment_stmt")) {
-            loop(childNode, root);
-        }
-//        } else if (childNode.getValue().equals("distill_stmt")) {
-//            distill(childNode, root);
-//        } else if (childNode.getValue().equals("ferment_stmt")) {
-//            ferment(childNode, root);
+//        } else if (childNode.getValue().equals("distill_stmt") || childNode.getValue().equals("ferment_stmt")) {
+//            loop(childNode, root);
 //        }
+        } else if (childNode.getValue().equals("distill_stmt")) {
+            distill(childNode, root);
+        } else if (childNode.getValue().equals("ferment_stmt")) {
+            ferment(childNode, root);
+        }
     }
 
-    public void boolderiv(ParseTreeNode boolderivNode, StatementsNode parentNode) {
+    public void boolderiv(ParseTreeNode boolderivNode, BooleanNode parentNode) {//StatementsNode parentNode) {
         BooleanNode rightNode = null;
         BooleanNode leftNode = null;
         for (ParseTreeNode child : boolderivNode.getChildren()) {
-            if (child.getValue().startsWith("condition")) {
-                //leftNode = condition(child);
-            } else if (child.getValue().startsWith("condition_x")) {
+            System.out.println("Boolderiv child node: " + child.getValue());
+            if (child.getValue().equals("condition")) {
+                leftNode = condition(child);
+            } else if (child.getValue().equals("condition_x")) {
+                System.out.println("Going to condition_x");
                 rightNode = condition_x(child, leftNode);
+                System.out.println("\nIs rightNode null after condition_x? " + (rightNode == null));
                 if (rightNode == null) {
                     parentNode.addChild(leftNode);
                     return;
@@ -119,13 +139,48 @@ public class SyntaxTree {
         parentNode.addChild(rightNode);
     }
 
+//    public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode, TokenType width){
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode leftNode = null;
+//        for(ParseTreeNode op: numOperNode.getChildren()){
+//            if(op.getValue().equals("term")){
+//                leftNode = term(op, width);
+//            }else if(op.getValue().equals("term_x")){
+//                rightNode = term_x(op,width,leftNode);
+//                if (rightNode == null) {
+//                    // left precedence??
+//                    parentNode.addChild(leftNode);
+//                    return;
+//                }
+//            }
+//        }
+//        parentNode.addChild(rightNode);
+//    }
+
+//    public ArithmeticNode term(ParseTreeNode termNode, TokenType width){
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode leftNode = null;
+//        for(ParseTreeNode op: termNode.getChildren()){
+//            if(op.getValue().equals("factor")){
+//                leftNode = factor(op, width);
+//            }else if(op.getValue().equals("factor_x")){
+//                rightNode = factor_x(op,width, leftNode);
+//                // left precedence??
+//                if(rightNode == null){
+//                    return leftNode;
+//                }
+//            }
+//        }
+//        return rightNode;
+//    }
+
     public BooleanNode boolderiv_inner(ParseTreeNode boolderivInnerNode) {
         BooleanNode conditionNode = null;
         BooleanNode rightNode = null;
         for (ParseTreeNode child : boolderivInnerNode.getChildren()) {
-            if (child.getValue().startsWith("condition")) {
+            if (child.getValue().equals("condition")) {
                 rightNode = condition(child);
-            } else if (child.getValue().startsWith("condition_x")) {
+            } else if (child.getValue().equals("condition_x")) {
                 conditionNode = condition_x(child, rightNode);
                 if (conditionNode == null) {
                     return rightNode;
@@ -138,47 +193,94 @@ public class SyntaxTree {
     public BooleanNode condition(ParseTreeNode conditionNode) { //, StatementsNode root) {
         BooleanNode rightNode = null;
         BooleanNode leftNode = null;
+//        for (ParseTreeNode child : conditionNode.getChildren()) {
+//            System.out.println("Child node of condition node: " + child.getValue());
+//        }
         for (ParseTreeNode child : conditionNode.getChildren()) {
-            System.out.println(child.getValue());
-            if (child.getValue().startsWith("pair")) {
+            System.out.println("Child node of condition node: " + child.getValue());
+            if (child.getValue().equals("pair")) {
+                System.out.println("Going to pair");
                 leftNode = pair(child);
-            } else if (child.getValue().startsWith("pair_x")) {
+            } else if (child.getValue().equals("pair_x")) {
+                System.out.println("Going to pair_x");
                 rightNode = pair_x(child, leftNode);
+                if (rightNode == null) {
+                    //System.out.println("Returning leftNode from condition: " + leftNode.getValue());
+                    return leftNode;
+                }
             }
         }
         return rightNode;
     }
+
+//    public ArithmeticNode term(ParseTreeNode termNode, TokenType width){
+//        //return new ArithmeticNode<String>("term" + x++,width);
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode leftNode = null;
+//        for(ParseTreeNode op: termNode.getChildren()){
+//            if(op.getValue().equals("factor")){
+//                leftNode = factor(op, width);
+//            }else if(op.getValue().equals("factor_x")){
+//                rightNode = factor_x(op,width, leftNode);
+//                // left precedence??
+//                if(rightNode == null){
+//                    return leftNode;
+//                }
+//            }
+//        }
+//        return rightNode;
+//    }
+
+//    public ArithmeticNode exponent(ParseTreeNode exponentNode, TokenType width){
+//        List<ParseTreeNode> children = exponentNode.getChildren();
+//        if(children.get(0).getValue().equals("SUB")){
+//            if(children.get(1).getValue().equals("num_final")){
+//                ArithmeticNode finalNode = num_final(children.get(1),width);
+//                finalNode.setNegative(true);
+//                return finalNode;
+//            }
+//        }else if(children.get(0).getValue().equals("num_final")){
+//            return num_final(children.getFirst(), width);
+//        }
+//        return null;
+//    }
 
     public BooleanNode condition_x(ParseTreeNode condition_xNode, BooleanNode<?> leftNode) {
         BooleanNode<TokenType> subroot = null;
         BooleanNode rightNode = null;
         BooleanNode<TokenType> r = null;
         for (ParseTreeNode child : condition_xNode.getChildren()) { //child nodes
+            System.out.println("\ncondition_x node child: " + child.getValue());
             switch (child.getValue()) {
                 case "OR" -> {
-                    TokenType operator = null;
-                    if (child.getValue().startsWith("OR")) {
-                        operator = TokenType.OR;
-                    } else {
+                    if (!child.getValue().startsWith("OR")) {
                         System.out.println("Invalid operator for condition_x!");
                         System.out.println(child.getValue());
                         System.exit(1);
                     }
-                    subroot = new BooleanNode<>(child.getValue());
-                    subroot.setValue(operator);
+                    System.out.println("Creating a new subroot for condition_x");
+                    subroot = new BooleanNode<>(child.getValue(),TokenType.OR);
                     subroot.addChild(leftNode);
+                    System.out.println("Subroot node: " + subroot.getValue());
+                    System.out.println("Subroot node's left child: " + leftNode.getValue());
                 }
                 case "condition" -> {
+                    System.out.println("Entered condition case for condition_x");
                     rightNode = condition(child);
+                    System.out.println("rightNode from condition_x is null: " + (rightNode == null));
                     if (subroot == null) {
                         return rightNode;
                     } else {
                         subroot.addChild(rightNode);
+//                        System.out.println("Subroot node value at condition_x: " + subroot.getValue());
+//                        System.out.println("Subroot's left node value at condition_x: " + leftNode.getValue());
+//                        System.out.println("Subroot's right node value at condition_x: " + rightNode.getValue());
                     }
                 }
                 case "condition_x" -> {
                     r = condition_x(child, subroot);
-                    if (subroot == null) {
+                    System.out.println("Is r null? " + (r == null));
+                    if (r == null) {
                         return subroot;
                     } else {
                         return r;
@@ -189,8 +291,136 @@ public class SyntaxTree {
         return subroot;
     }
 
+//    public ArithmeticNode term_x(ParseTreeNode termNode, TokenType width, ArithmeticNode<?> leftNode){
+//        ArithmeticNode<TokenType> subroot = null;
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode<TokenType> r = null;
+//        for(ParseTreeNode op: termNode.getChildren()){
+//            switch (op.getValue()) {
+//                case "ADD", "SUB" -> {
+//                    TokenType operator = null;
+//                    if (op.getValue().equals("ADD")) {
+//                        operator = TokenType.ADD;
+//                    } else if (op.getValue().equals("SUB")) {
+//                        operator = TokenType.SUB;
+//                    } else {
+//                        System.out.println("LanguageError: Invalid operator for term!!!");
+//                        System.exit(1);
+//                    }
+//                    subroot = new ArithmeticNode<>(op.getValue() , width);
+//                    subroot.setValue(operator);
+//                    subroot.addChild(leftNode);
+//                }
+//                case "term" ->{
+//                    rightNode = term(op, width);
+//                    if(subroot == null){
+//                        return rightNode;
+//                    }else {
+//                        subroot.addChild(rightNode);
+//                    }
+//                }
+//                case "term_x" ->{
+//                    r = term_x(op, width,subroot);
+//                    if (r == null) {
+//                        // left precedence??
+//                        return subroot;
+//                    } else{
+//                        // left precedence??
+//                        return r;
+//                    }
+//                }
+//
+//            }
+//        }
+//        return subroot;
+//    }
+
+//    public ArithmeticNode exponent_x(ParseTreeNode exponentNode, TokenType width, ArithmeticNode leftNode){
+//        ArithmeticNode<TokenType> subroot = null;
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode r = null;
+//        for(ParseTreeNode op: exponentNode.getChildren()){
+//            switch (op.getValue()) {
+//                case "EXP" -> {
+//                    TokenType operator = TokenType.EXP;
+//                    subroot = new ArithmeticNode<>(op.getValue() , width);
+//                    subroot.setValue(operator);
+//                    subroot.addChild(leftNode);
+//                }
+//                case "exponent" ->{
+//                    rightNode = exponent(op, width);
+//                    if(subroot == null){
+//                        return rightNode;
+//                    }else{
+//                        subroot.addChild(rightNode);
+//                    }
+//                }
+//                case "exponent_x" ->{
+//                    r = exponent_x(op, width, subroot);
+//                    if (r == null) {
+//                        // left precedence??
+//                        return subroot;
+//                    }else {
+//                        // left precedence??
+//                        return r;
+//                    }
+//                }
+//
+//            }
+//        }
+//        return subroot;
+//    }
+//
+//    public ArithmeticNode factor_x(ParseTreeNode factorNode, TokenType width, ArithmeticNode<?> leftNode){
+//        ArithmeticNode<TokenType> subroot = null;
+//        ArithmeticNode  rightNode = null;
+//        ArithmeticNode r = null;
+//        for(ParseTreeNode op: factorNode.getChildren()){
+//            switch (op.getValue()) {
+//                case "MUL", "DIV" -> {
+//                    TokenType operator = null;
+//                    if (op.getValue().equals("MUL")) {
+//                        operator = TokenType.MUL;
+//                    } else if (op.getValue().equals("DIV")) {
+//                        operator = TokenType.DIV;
+//                    } else {
+//                        System.out.println("LanguageError: Invalid operator for factor_x!!!");
+//                        System.exit(1);
+//                    }
+//                    subroot = new ArithmeticNode<>(op.getValue() , width);
+//                    subroot.setValue(operator);
+//                    subroot.addChild(leftNode);
+//
+//                }
+//                case "factor" ->{
+//                    rightNode = factor(op, width);
+//                    if(subroot == null){
+//                        return rightNode;
+//                    }else{
+//                        subroot.addChild(rightNode);
+//                    }
+//                }
+//
+//                case "factor_x" ->{
+//                    r = factor_x(op, width, subroot);
+//                    if (r == null) {
+//                        //left precedence??
+//                        return subroot;
+//                    }else {
+//                        //left precedence??
+//                        return r;
+//                    }
+//                }
+//            }
+//        }
+//        return subroot;
+//    }
+
     public BooleanNode pair(ParseTreeNode pairNode) {
         List<ParseTreeNode> children = pairNode.getChildren();
+//        for (ParseTreeNode node : children) {
+//            System.out.println("Child of pair node: " + node.getValue());
+//        }
         if (children.get(0).getValue().equals("INVERT")) { // for the ! or unary invert operation
             if (children.get(1).getValue().equals("boolval")) {
                 BooleanNode finalNode = boolval(children.get(1));
@@ -198,8 +428,11 @@ public class SyntaxTree {
                 return finalNode;
             }
         } else if (children.get(0).getValue().equals("boolval")) {
+            System.out.println("pair child: " + children.get(0).getValue());
             return boolval(children.getFirst());
         }
+        System.out.println("Pair node child: " + children.getFirst().getValue());
+        System.out.println("null printing for pair node");
         return null;
     }
 
@@ -208,16 +441,14 @@ public class SyntaxTree {
         BooleanNode rightNode = null;
         BooleanNode<TokenType> r = null;
         for (ParseTreeNode child : pair_xNode.getChildren()) {
-            System.out.println(child.getValue());
+            System.out.println("Child node of pair_x node: " + child.getValue());
             switch (child.getValue()) {
                 case "AND" -> {
-                    TokenType operator = TokenType.EXP;
-                    subroot = new BooleanNode<>(child.getValue());
-                    subroot.setValue(operator);
+                    subroot = new BooleanNode<>(child.getValue(),TokenType.AND);
                     subroot.addChild(leftNode);
                 }
                 case "pair" -> {
-                    //rightNode = pair(child);
+                    rightNode = pair(child);
                     if (subroot == null){
                         return rightNode;
                     } else {
@@ -232,30 +463,169 @@ public class SyntaxTree {
                         return r;
                     }
                 }
-                default -> {
-                    System.out.println("Invalid operator for pair_x!");
-                    System.out.println(child.getValue());
-                    System.exit(1);
-                }
+//                default -> {
+//                    System.out.println("Invalid operator for pair_x!");
+//                    System.out.println(child.getValue());
+//                    System.exit(1);
+//                }
             }
         }
         return subroot;
     }
 
+//    public ArithmeticNode exponent_x(ParseTreeNode exponentNode, TokenType width, ArithmeticNode leftNode){
+//        ArithmeticNode<TokenType> subroot = null;
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode r = null;
+//        for(ParseTreeNode op: exponentNode.getChildren()){
+//            switch (op.getValue()) {
+//                case "EXP" -> {
+//                    TokenType operator = TokenType.EXP;
+//                    subroot = new ArithmeticNode<>(op.getValue() , width);
+//                    subroot.setValue(operator);
+//                    subroot.addChild(leftNode);
+//                }
+//                case "exponent" ->{
+//                    rightNode = exponent(op, width);
+//                    if(subroot == null){
+//                        return rightNode;
+//                    }else{
+//                        subroot.addChild(rightNode);
+//                    }
+//                }
+//                case "exponent_x" ->{
+//                    r = exponent_x(op, width, subroot);
+//                    if (r == null) {
+//                        // left precedence??
+//                        return subroot;
+//                    }else {
+//                        // left precedence??
+//                        return r;
+//                    }
+//                }
+//
+//            }
+//        }
+//        return subroot;
+//    }
+
     public BooleanNode boolval(ParseTreeNode boolvalNode) { //IN PROGRESS
+        BooleanNode subtree = null;
+        ArithmeticNode operandNodeL = null;
+        BooleanNode operatorNode = null;
+        ArithmeticNode operandNodeR = null;
         for (ParseTreeNode child : boolvalNode.getChildren()) {
-            System.out.println(child.getValue());
+            System.out.println("Child node of boolvalNode: " + child.getValue());
             if (child.getValue().equals("bool_operand")) {
-                if (child.getChildren().getFirst().getValue().startsWith("true") || child.getChildren().getFirst().getValue().startsWith("false")) {
-                    BooleanNode finalNode = boolval(child);
+                System.out.println("bool_operand child value: " + child.getChildren().getFirst().getValue());
+                if (child.getChildren().getFirst().getValue().equals("TRUE") || child.getChildren().getFirst().getValue().equals("FALSE")) {
+                    System.out.println("Returning Boolean Node from boolval");
+                    BooleanNode finalNode;
+                    if (child.getChildren().getFirst().getValue().equals("TRUE")) {
+                        finalNode = new BooleanNode("true", true); //boolval(child);
+                    } else {
+                        finalNode = new BooleanNode("false", false); //boolval(child);
+                    }
                     return finalNode;
                 }
-            } else if (child.getValue().startsWith("boolderiv")) {
+            } else if (child.getValue().equals("boolderiv")) {
                 return boolderiv_inner(child);
+            } else if (child.getValue().equals("numoper")) {
+                if (operandNodeL == null) {
+                    operandNodeL = numoper(child);
+                } else {
+                    operandNodeR = numoper(child);
+                }
+            } else if (child.getValue().equals("relation")) {
+                //operatorNode = relation(child, operandNodeL, operandNodeR);
+                operatorNode = relation(child);
+            }
+            if(operatorNode != null && operandNodeL != null && operandNodeR != null){
+                subtree = new BooleanNode<>("Relation: "+operatorNode.getValue());
+                subtree.setValue(operatorNode.getValue());
+                subtree.addChild(operandNodeL);
+                subtree.addChild(operandNodeR);
+            }
+        }
+
+        return subtree;
+    }
+
+    public BooleanNode relation(ParseTreeNode relationNode) {//, ASTNode leftNode, ASTNode rightNode) {
+        for (ParseTreeNode child : relationNode.getChildren()) {
+            System.out.println("Child node of relationNode: " + child.getValue());
+            if (child.getValue().equals("eq_rel")) {
+                return eq_rel(child);//, leftNode, rightNode);
+            } else if (child.getValue().equals("size_rel")) {
+                return size_rel(child);//, leftNode, rightNode);
             }
         }
         return null;
     }
+
+    public BooleanNode eq_rel(ParseTreeNode eq_relNode) {
+        BooleanNode<TokenType> eq_operator = null;
+        for (ParseTreeNode child : eq_relNode.getChildren()) {
+            System.out.println("Child node of eq_relNode: " + child.getValue());
+            if (child.getValue().equals("IS")) {
+                eq_operator = new BooleanNode("IS",TokenType.IS);
+            } else if (child.getValue().equals("eq_right")) {
+                if (child.getChildren().getFirst().getValue().equals("NOT")) {
+                    eq_operator = new BooleanNode("NOT",TokenType.NOT);
+                }
+            }
+        }
+        return eq_operator;
+    }
+
+    public BooleanNode size_rel(ParseTreeNode size_relNode) {
+        BooleanNode<TokenType> size_operator = null;
+        for (ParseTreeNode child : size_relNode.getChildren()) {
+            System.out.println("Child node of size_relNode: " + child.getValue());
+            switch(child.getValue()) {
+                case "GT" -> size_operator = new BooleanNode<>("GT",TokenType.GT);
+                case "LT" -> size_operator = new BooleanNode<>("LT", TokenType.LT);
+                case "GTE" -> size_operator = new BooleanNode<>("GTE", TokenType.GTE);
+                case "LTE" -> size_operator = new BooleanNode<>("LTE", TokenType.LTE);
+            }
+        }
+        return size_operator;
+    }
+
+    public ArithmeticNode numoper(ParseTreeNode numoperNode) {
+        ArithmeticNode rightNode = null;
+        ArithmeticNode leftNode = null;
+        for (ParseTreeNode child : numoperNode.getChildren()) {
+            System.out.println("Child node of numoper node: " + child.getValue());
+            if (child.getValue().equals("term")) {
+                leftNode = term(child, TokenType.MOLE64);
+            } else if (child.getValue().equals("term_x")) {
+                rightNode = term_x(child, TokenType.MOLE64, leftNode);
+                if (rightNode == null) {
+                    return leftNode;
+                }
+            }
+        }
+        return rightNode;
+    }
+
+//    public void numoper(ParseTreeNode numOperNode, AssignmentExpressionNode parentNode, TokenType width){
+//        ArithmeticNode rightNode = null;
+//        ArithmeticNode leftNode = null;
+//        for(ParseTreeNode op: numOperNode.getChildren()){
+//            if(op.getValue().equals("term")){
+//                leftNode = term(op, width);
+//            }else if(op.getValue().equals("term_x")){
+//                rightNode = term_x(op,width,leftNode);
+//                if (rightNode == null) {
+//                    // left precedence??
+//                    parentNode.addChild(leftNode);
+//                    return;
+//                }
+//            }
+//        }
+//        parentNode.addChild(rightNode);
+//    }
 
     //    public ArithmeticNode num_final(ParseTreeNode finalNode, TokenType width){ //the function itself is meant for operands
 //        for(ParseTreeNode type: finalNode.getChildren()){
@@ -330,8 +700,10 @@ public class SyntaxTree {
         LoopNode ln = null;
         if (type == LoopType.DISTILL) {
             ln = new LoopNode("DISTILL", type);
+            //distill(loopNode, root);
         } else if (type == LoopType.FERMENT) {
             ln = new LoopNode("FERMENT", type);
+            //ferment(loopNode, root);
         }
         root.addChild(ln);
 //        if (loopNode.getChildren().getFirst().getValue().equals("distill")) {
@@ -367,11 +739,23 @@ public class SyntaxTree {
 //    }
 
     public void distill(ParseTreeNode distillNode, StatementsNode root){
+        LoopNode ln = new LoopNode("DISTILL", LoopType.DISTILL);
         for (ParseTreeNode child : distillNode.getChildren()) {
-            if (child.getValue().startsWith("statements_x")) {
-                statements_x(child, root);
-            } else if (child.getValue().startsWith("boolderiv")) {
-                boolderiv(child, root);
+            System.out.println("Distill child: " + child.getValue());
+            if (child.getValue().equals("DISTILL")) {
+                //LoopNode ln = new LoopNode("DISTILL", LoopType.DISTILL);
+                root.addChild(ln);
+            } else if (child.getValue().equals("statements_x")) {
+                StatementsNode body = new StatementsNode("Body");
+                statements_x(child, body);
+                ln.addChild(body);
+                //root.addChild(body);
+            } else if (child.getValue().equals("boolderiv")) {
+                BooleanNode cond = new BooleanNode("Condition");
+                //boolderiv(child, root);
+                boolderiv(child, cond);
+                //root.addChild(cond);
+                ln.addChild(cond);
             }
 //            } else {
 //                System.out.println("Illegal value found at distill: " + child.getValue());
@@ -407,16 +791,86 @@ public class SyntaxTree {
 //                }
 //            }
 //        }
+        LoopNode ln = new LoopNode("FERMENT", LoopType.FERMENT);
         for (ParseTreeNode child : fermentNode.getChildren()) {
-            if (child.getValue().startsWith("boolderiv")) {
-                boolderiv(child, root);
+            System.out.println("ferment children: " + child.getValue());
+            if (child.getValue().startsWith("FERMENT")) {
+                //LoopNode ln = new LoopNode("FERMENT", LoopType.FERMENT);
+                root.addChild(ln);
+            }else if (child.getValue().startsWith("boolderiv")) {
+                //add a new node for the condition
+                BooleanNode cond = new BooleanNode("Condition");
+                //boolderiv(child, root);
+                boolderiv(child, cond);
+                ln.addChild(cond);
+                //root.addChild(cond);
             } else if (child.getValue().startsWith("cond_body")) {
-                cond_body(child, root);
+                System.out.println("Entering cond_body");
+                //cond_body(child, root);
+                cond_body(child, ln);
             }
 //            } else {
 //                System.out.println("Illegal value found: " + child.getValue());
 //                System.exit(1);
 //            }
+        }
+    }
+
+    public void cond_stmt(ParseTreeNode cond_stmtNode, StatementsNode root) {
+        for (ParseTreeNode child : cond_stmtNode.getChildren()) {
+//            if (child.getValue().startsWith("filter_stmt")) {
+//                //System.out.println("Going to filter");
+//                filter(child, root);
+//            }
+            //System.out.println("Cond_stmt children: " + child.getValue());
+            if (child.getValue().equals("filter_stmt")) {
+                filter_stmt(child, root);
+            }
+        }
+    }
+
+    public void filter_stmt(ParseTreeNode filter_exprNode, StatementsNode root) {
+        //System.out.println("entered filter_stmt");
+        for (ParseTreeNode child : filter_exprNode.getChildren()) {
+            if (child.getValue().equals("filter_expr")) {
+                //System.out.println("going to filter method");
+                filter(child, root);
+            } else if (child.getValue().equals("funnel_expr")){
+                funnel(child, root);
+            }
+        }
+    }
+
+    public void filter(ParseTreeNode filterNode, StatementsNode root){
+        //ConditionalNode condFilter = null;
+        //ConditionalNode condFunnel = null;
+        ConditionalNode cn = new ConditionalNode("FILTER");
+        for (ParseTreeNode child : filterNode.getChildren()) {
+            //System.out.println("Filter children: " + child.getValue());
+            if (child.getValue().equals("FILTER")) {
+                System.out.println("adding filter node to root");
+                root.addChild(cn);
+            } else if (child.getValue().equals("boolderiv")) {
+                BooleanNode cond = new BooleanNode("Condition");
+                //boolderiv(child, root);
+                boolderiv(child, cond);
+                cn.addChild(cond);
+            } else if (child.getValue().equals("cond_body")) {
+                cond_body(child, cn);
+            }
+        }
+    }
+
+    public void funnel(ParseTreeNode funnelNode, ASTNode root) {
+        ConditionalNode cn = new ConditionalNode("FUNNEL");
+        for (ParseTreeNode child : funnelNode.getChildren()) {
+            if (child.getValue().equals("FUNNEL")) {
+                root.addChild(cn);
+            } else if (child.getValue().equals("funnel_right")) { //contains the body of the funnel
+                funnel(child, cn);
+            } else if (child.getValue().equals("cond_body")) {
+                cond_body(child, root);
+            }
         }
     }
 
@@ -641,7 +1095,7 @@ public class SyntaxTree {
                 if(type.getChildren().getFirst().getValue().startsWith("NUMLIT")){
                     String literal = type.getChildren().getFirst().getValue().substring(7, type.getChildren().getFirst().getValue().length()-1);
                     if(width == TokenType.MOLE32){
-                        ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32);
+                        ArithmeticNode<Integer> intLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE32); //create a new ArithmeticNode
                         try{
                             if(literal.toLowerCase().startsWith("0x")){
                                 intLit.setValue(Integer.parseInt(literal.toLowerCase().substring(2), 16));
@@ -656,7 +1110,7 @@ public class SyntaxTree {
 
                             System.exit(1);
                         }
-                        return intLit;
+                        return intLit; //then return it
                     }
                     if(width == TokenType.MOLE64){
                         ArithmeticNode<Long> longLit = new ArithmeticNode<>("Numerical Literal: "+ literal, TokenType.MOLE64);
@@ -688,6 +1142,11 @@ public class SyntaxTree {
                 return varNode;
             }else if(type.getValue().startsWith("numoper")){
                 return numoper_inner(type,width);
+            }else if(type.getValue().equals("stdin")){
+                ArithmeticNode<TokenType> stdin = new ArithmeticNode<>("Input", width);
+                stdin.setValue(TokenType.INPUT);
+                stdin.addChild(stdin(type));
+                return stdin;
             }
         }
         return null;

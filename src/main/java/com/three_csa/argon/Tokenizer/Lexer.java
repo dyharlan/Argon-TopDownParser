@@ -1672,9 +1672,9 @@ public class Lexer {
                         case '\t':
                         case '\r':
                             if (subst.equals("when")) {
-                                tokenList.addToken(TokenType.WHEN, subst, line);
-                                output += tokenList.getLatestToken().getType().name() + "\n";
-                                neatOutput += tokenList.getLatestToken().getType().name() + " ";
+//                                tokenList.addToken(TokenType.WHEN, subst, line);
+//                                output += tokenList.getLatestToken().getType().name() + "\n";
+//                                neatOutput += tokenList.getLatestToken().getType().name() + " ";
                                 c = backtrack();
                                 currState = States.START;
                             } else {
@@ -1700,9 +1700,9 @@ public class Lexer {
                         case '<':
                         case '.':
                             if (subst.equals("when")) {
-                                tokenList.addToken(TokenType.WHEN, subst, line);
-                                output += tokenList.getLatestToken().getType().name() + "\n";
-                                neatOutput += tokenList.getLatestToken().getType().name() + " ";
+//                                tokenList.addToken(TokenType.WHEN, subst, line);
+//                                output += tokenList.getLatestToken().getType().name() + "\n";
+//                                neatOutput += tokenList.getLatestToken().getType().name() + " ";
                             } else {
                                 tokenList.addToken(TokenType.IDENT, subst, line);
                                 output += tokenList.getLatestToken().getType().name() + "("
