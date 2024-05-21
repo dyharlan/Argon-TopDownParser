@@ -1,19 +1,43 @@
 
 reactive mole64 x = 12;
 reactive mole64 y = 12;
-reactive mole32 a = input("Enter first number: ") + input("Enter second number: ");
+reactive mole32 a = input("Enter first number: ") + input("Enter second number: ") + input("Enter a third number: ");
 
 println("value of a: " + a);
 
 ferment(x > 1){
         ferment(y > 1){
-            println("Iteration: " + y);
+            println("Iteration for nested: " + y);
+            filter(x > 1) {
+                println("x is greater than 1");
+            }
             y-=1;
         }
         x-=1;
 }
 
-filter(true .is..not. false){
+filter(x > 0) {
+    filter (y > 0) {
+        println("Both x and y are greater than 0");
+    }
+}
+x = 12;
+y = 12;
+
+/*
+    Note about distill and the choice to use the keyword "until":
+    Distill - distill, brew or do something inside the body
+    Until - until the condition provided becomes false
+    Essentially another way of saying "do x while y is true"
+*/
+//distill {
+//    ferment(y > 1){
+//            println("Iteration for Distill: " + y);
+//            y-=1;
+//        }
+//        x-=1;
+//}until(x > 1);
+filter(true .is. false){
     println("True!!!!!!!!!!!!!!!!!!");
 } funnel {
     println("False!!!!!!!!!!!!!!!!!");
